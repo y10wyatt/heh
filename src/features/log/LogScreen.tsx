@@ -2,6 +2,7 @@
 
 import { Camera, Dumbbell, Droplet, RotateCcw, Save, Scale } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { getWeeklyWeighInMessage } from "@/lib/competition/weekly";
 import type { DailyLog, MuscleGroup } from "@/lib/types";
 import { usePersistentDailyLog } from "@/lib/use-persistent-daily-log";
 
@@ -19,9 +20,10 @@ const muscleGroupOptions: Array<{ label: string; value: MuscleGroup }> = [
 
 type LogScreenProps = {
   seedLog: DailyLog;
+  weeklyWeighInDay: number;
 };
 
-export function LogScreen({ seedLog }: LogScreenProps) {
+export function LogScreen({ seedLog, weeklyWeighInDay }: LogScreenProps) {
   const { isLoading, log, resetLog, source, statusMessage, updateLog } = usePersistentDailyLog(seedLog);
   const hasMealPhoto = log.mealPhotos.length > 0;
   const selectedMuscleGroup = log.workoutMuscleGroups[0] ?? "full-body";
@@ -53,6 +55,9 @@ export function LogScreen({ seedLog }: LogScreenProps) {
               value={log.weight ?? ""}
             />
           </label>
+          <p className="mt-3 rounded-2xl bg-blue px-3 py-2 text-xs font-black text-charcoal/70">
+            {getWeeklyWeighInMessage(weeklyWeighInDay, Boolean(log.weight))}
+          </p>
         </section>
 
         <section className="doodle-card rounded-[1.5rem] bg-white p-4">

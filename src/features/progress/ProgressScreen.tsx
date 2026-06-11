@@ -8,6 +8,7 @@ type ProgressScreenProps = {
 
 export function ProgressScreen({ progressData }: ProgressScreenProps) {
   const { summary, weeklyTrend } = progressData;
+  const hasTrendData = weeklyTrend.some((day) => day.you > 0 || day.sibling > 0);
 
   return (
     <AppShell activeTab="progress">
@@ -21,17 +22,23 @@ export function ProgressScreen({ progressData }: ProgressScreenProps) {
 
         <section className="doodle-card rounded-[1.5rem] bg-white p-4">
           <h2 className="mb-4 text-sm font-black uppercase">Weekly Trend</h2>
-          <div className="flex h-40 items-end gap-2 border-b-2 border-l-2 border-charcoal/30 px-2">
-            {weeklyTrend.map((day) => (
-              <div className="flex flex-1 flex-col items-center justify-end gap-1" key={day.label}>
-                <div className="flex h-28 items-end gap-1">
-                  <span className="w-3 rounded-t bg-sage" style={{ height: `${day.you * 24}px` }} />
-                  <span className="w-3 rounded-t bg-coral" style={{ height: `${day.sibling * 24}px` }} />
+          {hasTrendData ? (
+            <div className="flex h-40 items-end gap-2 border-b-2 border-l-2 border-charcoal/30 px-2">
+              {weeklyTrend.map((day) => (
+                <div className="flex flex-1 flex-col items-center justify-end gap-1" key={day.label}>
+                  <div className="flex h-28 items-end gap-1">
+                    <span className="w-3 rounded-t bg-sage" style={{ height: `${Math.max(day.you * 24, 4)}px` }} />
+                    <span className="w-3 rounded-t bg-coral" style={{ height: `${Math.max(day.sibling * 24, 4)}px` }} />
+                  </div>
+                  <span className="text-[10px] font-black">{day.label}</span>
                 </div>
-                <span className="text-[10px] font-black">{day.label}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border-2 border-dashed border-charcoal/30 bg-cream px-4 py-6 text-center text-sm font-black">
+              No weekly weigh-ins yet. Add a weight entry on the Log screen to start the trend.
+            </div>
+          )}
         </section>
 
         <div className="grid grid-cols-2 gap-3">

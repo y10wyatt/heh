@@ -1,15 +1,17 @@
 import { Calendar, Goal, Scale, UserRound } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
+import { MemberListCard } from "@/components/MemberListCard";
 import { ProfileEditForm } from "./ProfileEditForm";
 import type { ProfileData } from "@/lib/data/contracts";
+import { signOut } from "@/lib/supabase/actions/session";
 
 type ProfileScreenProps = {
   profileData: ProfileData;
 };
 
 export function ProfileScreen({ profileData }: ProfileScreenProps) {
-  const { competition, group, user } = profileData;
+  const { competition, group, members, user } = profileData;
 
   const settings = [
     { label: "Display Name", value: user.displayName, icon: UserRound },
@@ -67,7 +69,14 @@ export function ProfileScreen({ profileData }: ProfileScreenProps) {
           );
         })}
 
+        <MemberListCard members={members} />
         <ProfileEditForm user={user} />
+
+        <form action={signOut}>
+          <button className="doodle-card w-full rounded-[1.25rem] bg-white px-4 py-3 text-sm font-black transition active:translate-y-0.5" type="submit">
+            Sign Out
+          </button>
+        </form>
       </div>
     </AppShell>
   );

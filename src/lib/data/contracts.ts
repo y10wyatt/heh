@@ -17,6 +17,7 @@ export type ProfileData = {
   user: User;
   group: Group;
   competition: Competition;
+  members: User[];
 };
 
 export type AppDataProvider = {

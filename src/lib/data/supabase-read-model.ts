@@ -147,7 +147,7 @@ function buildSummary(user: User, sibling: User, weeklyTrend: WeeklyTrendPoint[]
   };
 }
 
-function buildWeeklyTrend(weightEntries: WeightEntryRow[], userId: string, siblingId: string): WeeklyTrendPoint[] {
+function buildWeeklyTrend(weightEntries: WeightEntryRow[], user: User, sibling: User): WeeklyTrendPoint[] {
   const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const today = new Date();
 
@@ -155,13 +155,15 @@ function buildWeeklyTrend(weightEntries: WeightEntryRow[], userId: string, sibli
     const date = new Date(today);
     date.setDate(today.getDate() - (6 - index));
     const isoDate = date.toLocaleDateString("en-CA");
-    const youEntry = weightEntries.find((entry) => entry.user_id === userId && entry.entry_date === isoDate);
-    const siblingEntry = weightEntries.find((entry) => entry.user_id === siblingId && entry.entry_date === isoDate);
+    const youEntry = weightEntries.find((entry) => entry.user_id === user.id && entry.entry_date === isoDate);
+    const siblingEntry = weightEntries.find((entry) => entry.user_id === sibling.id && entry.entry_date === isoDate);
+    const youLost = youEntry && user.startingWeight ? Math.max(user.startingWeight - Number(youEntry.weight), 0) : 0;
+    const siblingLost = siblingEntry && sibling.startingWeight ? Math.max(sibling.startingWeight - Number(siblingEntry.weight), 0) : 0;
 
     return {
       label: dayLabels[date.getDay()],
-      sibling: siblingEntry ? Number(siblingEntry.weight) : 0,
-      you: youEntry ? Number(youEntry.weight) : 0,
+      sibling: Number(siblingLost.toFixed(1)),
+      you: Number(youLost.toFixed(1)),
     };
   });
 }
@@ -270,7 +272,7 @@ export async function getHomePageData() {
     .select("*")
     .eq("competition_id", competition.id)
     .gte("entry_date", new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA"));
-  const weeklyTrend = buildWeeklyTrend(weeklyWeights ?? [], user.id, sibling.id);
+  const weeklyTrend = buildWeeklyTrend(weeklyWeights ?? [], user, sibling);
   const todayLog = toDailyLog(dailyLog, user.id, context.competition, weightEntry?.weight ?? null);
   const siblingDailyLog = null;
 
@@ -303,6 +305,7 @@ export async function getLogPageData() {
     .maybeSingle();
 
   return {
+    competition,
     todayLog: toDailyLog(dailyLog, user.id, context.competition, weightEntry?.weight ?? null),
     user,
   };
@@ -316,7 +319,7 @@ export async function getProgressPageData() {
     .select("*")
     .eq("competition_id", competition.id)
     .gte("entry_date", new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA"));
-  const weeklyTrend = buildWeeklyTrend(weeklyWeights ?? [], user.id, sibling.id);
+  const weeklyTrend = buildWeeklyTrend(weeklyWeights ?? [], user, sibling);
 
   return {
     competition,
@@ -326,11 +329,12 @@ export async function getProgressPageData() {
 }
 
 export async function getProfilePageData() {
-  const { competition, group, user } = await getPageModels();
+  const { competition, context, group, user } = await getPageModels();
 
   return {
     competition,
     group,
+    members: context.memberProfiles.map((profile) => toUser(profile, context.latestWeights)),
     user,
   };
 }

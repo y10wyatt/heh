@@ -1,5 +1,5 @@
 import type { AppDataProvider } from "./contracts";
-import { competition, getCurrentUser, getSiblingUser, getTodayLog, getWeightLost, groups, rivalActions, weeklyTrend } from "@/lib/mock-data";
+import { competition, getCurrentUser, getSiblingUser, getTodayLog, getWeightLost, groups, rivalActions, users, weeklyTrend } from "@/lib/mock-data";
 import { getDailyConsistencyScore, getPercentLost, pickWinnerName } from "@/lib/competition/scoring";
 
 export const mockDataProvider: AppDataProvider = {
@@ -58,6 +58,7 @@ export const mockDataProvider: AppDataProvider = {
       user: getCurrentUser(),
       group: groups[0],
       competition,
+      members: users,
     };
   },
 };

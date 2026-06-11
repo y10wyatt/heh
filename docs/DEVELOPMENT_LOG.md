@@ -43,6 +43,11 @@
 - Added profile edit form for display name, mascot, starting weight, and goal weight.
 - Added Doodle Jump inspired Today hero/status card with placeholder mascot platform visuals.
 - Confirmed Vercel connector cannot deploy this unlinked workspace directly; deployment requires CLI link or git integration.
+- Added sign-out action.
+- Added group member display and waiting-for-sister state.
+- Added weekly weigh-in messaging on the Log screen.
+- Added empty state for Progress when no weekly weigh-ins exist.
+- Corrected weekly trend bars to chart pounds lost rather than raw weight.
 
 ## Deferred
 

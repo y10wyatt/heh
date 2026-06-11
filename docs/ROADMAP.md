@@ -104,6 +104,9 @@ Goal: make the app safe enough for real use.
 - RLS policies are applied. Status: done for MVP.
 - Profile editing. Status: started.
 - Invite flow. Status: done for one-use codes.
+- Sign out. Status: done.
+- Group members display. Status: done.
+- Weekly weigh-in reminder. Status: started.
 - Remaining: test with two real accounts and refine error states.
 
 ## Phase 7: Vercel Deployment
@@ -121,4 +124,5 @@ Goal: make it delightful enough to keep using.
 
 - Doodle Jump inspired Today hero. Status: started.
 - Placeholder mascot/platform visuals. Status: started.
+- Progress empty states. Status: started.
 - Remaining: visual QA on phone, asset pass, and small animations.
