@@ -1,0 +1,251 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { createSupabaseBrowserClient } from "./supabase/browser-client";
+import { hasSupabaseEnv } from "./supabase/env";
+import type { DailyLog, MuscleGroup } from "./types";
+import { normalizeDailyLog } from "./use-daily-log";
+
+type PersistenceSource = "loading" | "supabase" | "local";
+
+type SupabaseContext = {
+  userId: string;
+  competitionId: string;
+};
+
+const STORAGE_PREFIX = "sibling-showdown:daily-log";
+
+function getLocalDate() {
+  return new Date().toLocaleDateString("en-CA");
+}
+
+function getStorageKey(log: DailyLog) {
+  return `${STORAGE_PREFIX}:${log.userId}:${log.date}`;
+}
+
+function readLocalLog(seedLog: DailyLog) {
+  const savedLog = window.localStorage.getItem(getStorageKey(seedLog));
+  return savedLog ? normalizeDailyLog(JSON.parse(savedLog) as DailyLog) : normalizeDailyLog(seedLog);
+}
+
+function toSupabaseDailyLog(log: DailyLog, context: SupabaseContext) {
+  return {
+    id: log.id.startsWith("log-") ? undefined : log.id,
+    competition_id: context.competitionId,
+    completed: log.completed,
+    custom_workout_muscle_groups: log.customWorkoutMuscleGroups,
+    log_date: log.date,
+    meal_photo_bonus_earned: log.mealPhotoBonusEarned,
+    meal_photo_count: log.mealPhotos.length,
+    user_id: context.userId,
+    water_cups: log.waterCups,
+    water_goal: log.waterGoal,
+    workout_completed: log.workoutCompleted,
+    workout_goal_minutes: log.workoutGoalMinutes,
+    workout_muscle_groups: log.workoutMuscleGroups,
+  };
+}
+
+export function usePersistentDailyLog(seedLog: DailyLog) {
+  const [log, setLog] = useState(() => normalizeDailyLog({ ...seedLog, date: getLocalDate() }));
+  const [source, setSource] = useState<PersistenceSource>("loading");
+  const [statusMessage, setStatusMessage] = useState("Checking signed-in storage...");
+  const [context, setContext] = useState<SupabaseContext | null>(null);
+  const storageKey = useMemo(() => getStorageKey(log), [log]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadLog() {
+      if (!hasSupabaseEnv()) {
+        if (!isCancelled) {
+          setLog(readLocalLog(seedLog));
+          setSource("local");
+          setStatusMessage("Saved on this device.");
+        }
+        return;
+      }
+
+      const supabase = createSupabaseBrowserClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        if (!isCancelled) {
+          setLog(readLocalLog(seedLog));
+          setSource("local");
+          setStatusMessage("Sign in to sync with Supabase.");
+        }
+        return;
+      }
+
+      const { data: memberships, error: membershipError } = await supabase
+        .from("group_members")
+        .select("group_id")
+        .eq("user_id", user.id)
+        .limit(1);
+
+      if (membershipError || !memberships || memberships.length === 0) {
+        if (!isCancelled) {
+          setLog(normalizeDailyLog({ ...seedLog, userId: user.id, date: getLocalDate() }));
+          setSource("local");
+          setStatusMessage("Finish onboarding before Supabase logging is enabled.");
+        }
+        return;
+      }
+
+      const { data: competitions, error: competitionError } = await supabase
+        .from("competitions")
+        .select("id, water_goal")
+        .eq("group_id", memberships[0].group_id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (competitionError || !competitions || competitions.length === 0) {
+        if (!isCancelled) {
+          setLog(normalizeDailyLog({ ...seedLog, userId: user.id, date: getLocalDate() }));
+          setSource("local");
+          setStatusMessage("Create a competition before Supabase logging is enabled.");
+        }
+        return;
+      }
+
+      const nextContext = { competitionId: competitions[0].id, userId: user.id };
+      const today = getLocalDate();
+      const { data: dailyLog } = await supabase
+        .from("daily_logs")
+        .select("*")
+        .eq("competition_id", nextContext.competitionId)
+        .eq("user_id", user.id)
+        .eq("log_date", today)
+        .maybeSingle();
+      const { data: weightEntry } = await supabase
+        .from("weight_entries")
+        .select("weight")
+        .eq("competition_id", nextContext.competitionId)
+        .eq("user_id", user.id)
+        .eq("entry_date", today)
+        .maybeSingle();
+
+      const nextLog = normalizeDailyLog({
+        ...seedLog,
+        customWorkoutMuscleGroups: dailyLog?.custom_workout_muscle_groups ?? [],
+        date: today,
+        id: dailyLog?.id ?? `log-${user.id}-${today}`,
+        mealPhotoBonusEarned: dailyLog?.meal_photo_bonus_earned ?? false,
+        mealPhotos: dailyLog && dailyLog.meal_photo_count > 0 ? ["/assets/meal-placeholder.svg"] : [],
+        userId: user.id,
+        waterCups: dailyLog?.water_cups ?? 0,
+        waterGoal: dailyLog?.water_goal ?? competitions[0].water_goal,
+        weight: weightEntry?.weight ?? null,
+        workoutCompleted: dailyLog?.workout_completed ?? false,
+        workoutGoalMinutes: dailyLog?.workout_goal_minutes ?? seedLog.workoutGoalMinutes,
+        workoutMuscleGroups: (dailyLog?.workout_muscle_groups ?? seedLog.workoutMuscleGroups) as MuscleGroup[],
+      });
+
+      if (!isCancelled) {
+        setContext(nextContext);
+        setLog(nextLog);
+        setSource("supabase");
+        setStatusMessage("Synced with Supabase.");
+      }
+    }
+
+    loadLog();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [seedLog]);
+
+  async function saveToSupabase(nextLog: DailyLog, nextContext: SupabaseContext) {
+    const supabase = createSupabaseBrowserClient();
+    const { error: dailyLogError } = await supabase
+      .from("daily_logs")
+      .upsert(toSupabaseDailyLog(nextLog, nextContext), { onConflict: "competition_id,user_id,log_date" });
+
+    if (dailyLogError) {
+      setStatusMessage(dailyLogError.message);
+      return;
+    }
+
+    if (nextLog.weight) {
+      const { error: weightError } = await supabase.from("weight_entries").upsert(
+        {
+          competition_id: nextContext.competitionId,
+          entry_date: nextLog.date,
+          user_id: nextContext.userId,
+          weight: nextLog.weight,
+        },
+        { onConflict: "competition_id,user_id,entry_date" },
+      );
+
+      setStatusMessage(weightError ? weightError.message : "Synced with Supabase.");
+      return;
+    }
+
+    const { error: deleteWeightError } = await supabase
+      .from("weight_entries")
+      .delete()
+      .eq("competition_id", nextContext.competitionId)
+      .eq("user_id", nextContext.userId)
+      .eq("entry_date", nextLog.date);
+
+    setStatusMessage(deleteWeightError ? deleteWeightError.message : "Synced with Supabase.");
+  }
+
+  function updateLog(updates: Partial<DailyLog>) {
+    setLog((current) => {
+      const nextLog = normalizeDailyLog({ ...current, ...updates });
+
+      if (source === "supabase" && context) {
+        void saveToSupabase(nextLog, context);
+      }
+
+      if (source === "local") {
+        window.localStorage.setItem(storageKey, JSON.stringify(nextLog));
+        setStatusMessage("Saved on this device.");
+      }
+
+      return nextLog;
+    });
+  }
+
+  async function resetLog() {
+    const reset = normalizeDailyLog({
+      ...seedLog,
+      date: getLocalDate(),
+      mealPhotos: [],
+      waterCups: 0,
+      weight: null,
+      workoutCompleted: false,
+    });
+
+    setLog(reset);
+
+    if (source === "supabase" && context) {
+      const supabase = createSupabaseBrowserClient();
+      await supabase
+        .from("weight_entries")
+        .delete()
+        .eq("competition_id", context.competitionId)
+        .eq("user_id", context.userId)
+        .eq("entry_date", reset.date);
+      await saveToSupabase(reset, context);
+      return;
+    }
+
+    window.localStorage.removeItem(getStorageKey(seedLog));
+    setStatusMessage("Reset local daily log.");
+  }
+
+  return {
+    isLoading: source === "loading",
+    log,
+    resetLog,
+    source,
+    statusMessage,
+    updateLog,
+  };
+}

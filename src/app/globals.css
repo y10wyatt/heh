@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Trebuchet MS", "Comic Sans MS", Arial, sans-serif;
+  background: #fff7e6;
+  color: #2d2d2d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(255, 234, 167, 0.45), transparent 28rem),
+    radial-gradient(circle at top right, rgba(207, 232, 255, 0.5), transparent 24rem),
+    #fff7e6;
+  color: #2d2d2d;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.doodle-card {
+  border: 2px solid rgba(45, 45, 45, 0.82);
+  box-shadow: 0 5px 0 rgba(45, 45, 45, 0.08);
+}
+
+.sketch-line {
+  background-image: repeating-linear-gradient(
+    -12deg,
+    rgba(45, 45, 45, 0.18) 0,
+    rgba(45, 45, 45, 0.18) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+}
