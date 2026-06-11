@@ -36,7 +36,7 @@ function toSupabaseDailyLog(log: DailyLog, context: SupabaseContext) {
     custom_workout_muscle_groups: log.customWorkoutMuscleGroups,
     log_date: log.date,
     meal_photo_bonus_earned: log.mealPhotoBonusEarned,
-    meal_photo_count: log.mealPhotos.length,
+    meal_photo_count: Math.max(log.mealPhotos.length, log.mealPhotoPaths.length),
     user_id: context.userId,
     water_cups: log.waterCups,
     water_goal: log.waterGoal,
@@ -46,8 +46,21 @@ function toSupabaseDailyLog(log: DailyLog, context: SupabaseContext) {
   };
 }
 
+async function createSignedMealPhotoUrls(paths: string[]) {
+  const supabase = createSupabaseBrowserClient();
+  const signedUrls = await Promise.all(
+    paths.map(async (path) => {
+      const { data } = await supabase.storage.from("meal-photos").createSignedUrl(path, 60 * 60);
+      return data?.signedUrl ?? null;
+    }),
+  );
+
+  return signedUrls.filter((url): url is string => Boolean(url));
+}
+
 export function usePersistentDailyLog(seedLog: DailyLog) {
   const [log, setLog] = useState(() => normalizeDailyLog({ ...seedLog, date: getLocalDate() }));
+  const [isUploadingMealPhoto, setIsUploadingMealPhoto] = useState(false);
   const [source, setSource] = useState<PersistenceSource>("loading");
   const [statusMessage, setStatusMessage] = useState("Checking signed-in storage...");
   const [context, setContext] = useState<SupabaseContext | null>(null);
@@ -127,6 +140,11 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
         .eq("user_id", user.id)
         .eq("entry_date", today)
         .maybeSingle();
+      const { data: mealLogs } = dailyLog
+        ? await supabase.from("meal_logs").select("photo_url").eq("daily_log_id", dailyLog.id).eq("user_id", user.id).order("created_at", { ascending: false })
+        : { data: null };
+      const mealPhotoPaths = mealLogs?.map((mealLog) => mealLog.photo_url).filter((path): path is string => Boolean(path)) ?? [];
+      const mealPhotos = await createSignedMealPhotoUrls(mealPhotoPaths);
 
       const nextLog = normalizeDailyLog({
         ...seedLog,
@@ -134,7 +152,8 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
         date: today,
         id: dailyLog?.id ?? `log-${user.id}-${today}`,
         mealPhotoBonusEarned: dailyLog?.meal_photo_bonus_earned ?? false,
-        mealPhotos: dailyLog && dailyLog.meal_photo_count > 0 ? ["/assets/meal-placeholder.svg"] : [],
+        mealPhotoPaths,
+        mealPhotos,
         userId: user.id,
         waterCups: dailyLog?.water_cups ?? 0,
         waterGoal: dailyLog?.water_goal ?? competitions[0].water_goal,
@@ -161,13 +180,15 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
 
   async function saveToSupabase(nextLog: DailyLog, nextContext: SupabaseContext) {
     const supabase = createSupabaseBrowserClient();
-    const { error: dailyLogError } = await supabase
+    const { data: savedDailyLog, error: dailyLogError } = await supabase
       .from("daily_logs")
-      .upsert(toSupabaseDailyLog(nextLog, nextContext), { onConflict: "competition_id,user_id,log_date" });
+      .upsert(toSupabaseDailyLog(nextLog, nextContext), { onConflict: "competition_id,user_id,log_date" })
+      .select("id")
+      .single();
 
     if (dailyLogError) {
       setStatusMessage(dailyLogError.message);
-      return;
+      return null;
     }
 
     if (nextLog.weight) {
@@ -182,7 +203,7 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
       );
 
       setStatusMessage(weightError ? weightError.message : "Synced with Supabase.");
-      return;
+      return savedDailyLog.id;
     }
 
     const { error: deleteWeightError } = await supabase
@@ -193,6 +214,7 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
       .eq("entry_date", nextLog.date);
 
     setStatusMessage(deleteWeightError ? deleteWeightError.message : "Synced with Supabase.");
+    return savedDailyLog.id;
   }
 
   function updateLog(updates: Partial<DailyLog>) {
@@ -216,6 +238,8 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
     const reset = normalizeDailyLog({
       ...seedLog,
       date: getLocalDate(),
+      completed: false,
+      mealPhotoPaths: [],
       mealPhotos: [],
       waterCups: 0,
       weight: null,
@@ -232,6 +256,12 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
         .eq("competition_id", context.competitionId)
         .eq("user_id", context.userId)
         .eq("entry_date", reset.date);
+      if (log.mealPhotoPaths.length > 0) {
+        await supabase.storage.from("meal-photos").remove(log.mealPhotoPaths);
+      }
+      if (!log.id.startsWith("log-")) {
+        await supabase.from("meal_logs").delete().eq("daily_log_id", log.id).eq("user_id", context.userId);
+      }
       await saveToSupabase(reset, context);
       return;
     }
@@ -240,12 +270,87 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
     setStatusMessage("Reset local daily log.");
   }
 
+  async function uploadMealPhoto(file: File) {
+    if (source !== "supabase" || !context) {
+      const localPreviewUrl = URL.createObjectURL(file);
+      updateLog({ mealPhotoPaths: [], mealPhotos: [localPreviewUrl] });
+      setStatusMessage("Preview saved on this device. Sign in and finish onboarding to sync photos.");
+      return;
+    }
+
+    setIsUploadingMealPhoto(true);
+    const currentLog = normalizeDailyLog(log);
+    const dailyLogId = await saveToSupabase(currentLog, context);
+
+    if (!dailyLogId) {
+      setIsUploadingMealPhoto(false);
+      return;
+    }
+
+    const supabase = createSupabaseBrowserClient();
+    if (currentLog.mealPhotoPaths.length > 0) {
+      await supabase.storage.from("meal-photos").remove(currentLog.mealPhotoPaths);
+      await supabase.from("meal_logs").delete().eq("daily_log_id", dailyLogId).eq("user_id", context.userId);
+    }
+
+    const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const storagePath = `${context.userId}/${currentLog.date}/${crypto.randomUUID()}.${extension}`;
+    const { error: uploadError } = await supabase.storage.from("meal-photos").upload(storagePath, file, {
+      cacheControl: "3600",
+      contentType: file.type,
+      upsert: false,
+    });
+
+    if (uploadError) {
+      setStatusMessage(uploadError.message);
+      setIsUploadingMealPhoto(false);
+      return;
+    }
+
+    const { error: mealLogError } = await supabase.from("meal_logs").insert({
+      daily_log_id: dailyLogId,
+      photo_url: storagePath,
+      user_id: context.userId,
+    });
+
+    if (mealLogError) {
+      setStatusMessage(mealLogError.message);
+      setIsUploadingMealPhoto(false);
+      return;
+    }
+
+    const mealPhotos = await createSignedMealPhotoUrls([storagePath]);
+    updateLog({ mealPhotoPaths: [storagePath], mealPhotos });
+    setStatusMessage("Meal photo uploaded.");
+    setIsUploadingMealPhoto(false);
+  }
+
+  async function removeMealPhotos() {
+    const nextLog = normalizeDailyLog({ ...log, mealPhotoPaths: [], mealPhotos: [] });
+
+    if (source === "supabase" && context) {
+      const supabase = createSupabaseBrowserClient();
+      if (log.mealPhotoPaths.length > 0) {
+        await supabase.storage.from("meal-photos").remove(log.mealPhotoPaths);
+      }
+      if (!log.id.startsWith("log-")) {
+        await supabase.from("meal_logs").delete().eq("daily_log_id", log.id).eq("user_id", context.userId);
+      }
+      await saveToSupabase(nextLog, context);
+    }
+
+    updateLog(nextLog);
+  }
+
   return {
+    isUploadingMealPhoto,
     isLoading: source === "loading",
     log,
+    removeMealPhotos,
     resetLog,
     source,
     statusMessage,
     updateLog,
+    uploadMealPhoto,
   };
 }

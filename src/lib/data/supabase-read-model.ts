@@ -8,6 +8,7 @@ type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type CompetitionRow = Database["public"]["Tables"]["competitions"]["Row"];
 type DailyLogRow = Database["public"]["Tables"]["daily_logs"]["Row"];
 type GroupRow = Database["public"]["Tables"]["groups"]["Row"];
+type MealLogRow = Database["public"]["Tables"]["meal_logs"]["Row"];
 type RivalActionRow = Database["public"]["Tables"]["rival_actions"]["Row"];
 type WeightEntryRow = Database["public"]["Tables"]["weight_entries"]["Row"];
 
@@ -78,8 +79,30 @@ function toGroup(row: GroupRow, memberProfiles: ProfileRow[]): Group {
   };
 }
 
-function toDailyLog(row: DailyLogRow | null, userId: string, competition: CompetitionRow, weight: number | null): DailyLog {
+async function getMealPhotoUrls(mealLogs: MealLogRow[] | null | undefined) {
+  const supabase = await createSupabaseServerClient();
+  const paths = mealLogs?.map((mealLog) => mealLog.photo_url).filter((path): path is string => Boolean(path)) ?? [];
+
+  if (paths.length === 0) {
+    return { paths, urls: [] };
+  }
+
+  const signedUrls = await Promise.all(
+    paths.map(async (path) => {
+      const { data } = await supabase.storage.from("meal-photos").createSignedUrl(path, 60 * 60);
+      return data?.signedUrl ?? null;
+    }),
+  );
+
+  return {
+    paths,
+    urls: signedUrls.filter((url): url is string => Boolean(url)),
+  };
+}
+
+async function toDailyLog(row: DailyLogRow | null, userId: string, competition: CompetitionRow, weight: number | null, mealLogs?: MealLogRow[] | null): Promise<DailyLog> {
   const today = getLocalDate();
+  const mealPhotos = await getMealPhotoUrls(mealLogs);
 
   return {
     id: row?.id ?? `log-${userId}-${today}`,
@@ -87,7 +110,8 @@ function toDailyLog(row: DailyLogRow | null, userId: string, competition: Compet
     customWorkoutMuscleGroups: row?.custom_workout_muscle_groups ?? [],
     date: row?.log_date ?? today,
     mealPhotoBonusEarned: row?.meal_photo_bonus_earned ?? false,
-    mealPhotos: row && row.meal_photo_count > 0 ? ["/assets/meal-placeholder.svg"] : [],
+    mealPhotoPaths: mealPhotos.paths,
+    mealPhotos: mealPhotos.urls,
     userId,
     waterCups: row?.water_cups ?? 0,
     waterGoal: row?.water_goal ?? competition.water_goal,
@@ -275,10 +299,14 @@ export async function getHomePageData() {
     .eq("competition_id", competition.id)
     .gte("entry_date", new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA"));
   const weeklyTrend = buildWeeklyTrend(weeklyWeights ?? [], user, sibling);
-  const todayLog = toDailyLog(dailyLog, user.id, context.competition, weightEntry?.weight ?? null);
+  const { data: mealLogs } = dailyLog
+    ? await supabase.from("meal_logs").select("*").eq("daily_log_id", dailyLog.id).eq("user_id", context.userId).order("created_at", { ascending: false })
+    : { data: null };
+  const todayLog = await toDailyLog(dailyLog, user.id, context.competition, weightEntry?.weight ?? null, mealLogs);
   const siblingDailyLog = null;
 
   return {
+    competition,
     latestRivalAction: toRivalAction(latestRivalAction, user.id, sibling, competition.id),
     sibling,
     summary: buildSummary(user, sibling, weeklyTrend, todayLog, siblingDailyLog),
@@ -305,10 +333,13 @@ export async function getLogPageData() {
     .eq("user_id", context.userId)
     .eq("entry_date", today)
     .maybeSingle();
+  const { data: mealLogs } = dailyLog
+    ? await supabase.from("meal_logs").select("*").eq("daily_log_id", dailyLog.id).eq("user_id", context.userId).order("created_at", { ascending: false })
+    : { data: null };
 
   return {
     competition,
-    todayLog: toDailyLog(dailyLog, user.id, context.competition, weightEntry?.weight ?? null),
+    todayLog: await toDailyLog(dailyLog, user.id, context.competition, weightEntry?.weight ?? null, mealLogs),
     user,
   };
 }

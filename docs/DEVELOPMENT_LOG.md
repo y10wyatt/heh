@@ -6,6 +6,11 @@
 - Added onboarding/profile UI controls for weight units and replaced hard-coded `lbs` labels with the active profile unit.
 - Fixed onboarding group creation by generating the group id in the server action and inserting without an immediate `.select()`. This avoids the RLS timing issue where a brand-new group is not selectable until its owner membership exists.
 - Verified with `npm run build`, `npm run lint`, and a Supabase schema check.
+- Added a Home countdown card showing days left until the competition end date.
+- Removed the top mascot speech banner from Home in favor of the countdown and existing mascot hero.
+- Changed the Home workout card to link to the full Log screen instead of acting as a simple done toggle.
+- Changed `DailyLog.completed` into a manual Today Quest toggle.
+- Added private Supabase Storage-backed meal photo uploads with signed preview URLs.
 
 ## 2026-06-09
 

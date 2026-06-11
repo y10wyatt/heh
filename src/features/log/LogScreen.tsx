@@ -1,12 +1,11 @@
 "use client";
 
-import { Camera, Dumbbell, Droplet, RotateCcw, Save, Scale } from "lucide-react";
+import { Camera, Dumbbell, Droplet, ImagePlus, RotateCcw, Save, Scale, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { getWeeklyWeighInMessage } from "@/lib/competition/weekly";
 import type { DailyLog, MuscleGroup, WeightUnit } from "@/lib/types";
 import { usePersistentDailyLog } from "@/lib/use-persistent-daily-log";
 
-const MEAL_PLACEHOLDER = "/assets/meal-placeholder.svg";
 const muscleGroupOptions: Array<{ label: string; value: MuscleGroup }> = [
   { label: "Full Body", value: "full-body" },
   { label: "Upper Body", value: "upper-body" },
@@ -25,7 +24,7 @@ type LogScreenProps = {
 };
 
 export function LogScreen({ seedLog, weeklyWeighInDay, weightUnit }: LogScreenProps) {
-  const { isLoading, log, resetLog, source, statusMessage, updateLog } = usePersistentDailyLog(seedLog);
+  const { isLoading, isUploadingMealPhoto, log, removeMealPhotos, resetLog, source, statusMessage, updateLog, uploadMealPhoto } = usePersistentDailyLog(seedLog);
   const hasMealPhoto = log.mealPhotos.length > 0;
   const selectedMuscleGroup = log.workoutMuscleGroups[0] ?? "full-body";
 
@@ -104,17 +103,65 @@ export function LogScreen({ seedLog, weeklyWeighInDay, weightUnit }: LogScreenPr
             </span>
             <div className="flex-1">
               <h2 className="text-sm font-black uppercase">Meal Photo</h2>
-              <p className="text-xs font-bold text-charcoal/60">{hasMealPhoto ? "Placeholder saved" : "No photo yet"}</p>
+              <p className="text-xs font-bold text-charcoal/60">{hasMealPhoto ? "Photo saved" : "No photo yet"}</p>
             </div>
           </div>
-          <button
-            className={`w-full rounded-2xl border-2 border-charcoal px-3 py-3 text-sm font-black transition active:translate-y-0.5 ${
-              hasMealPhoto ? "bg-mint" : "bg-coral"
-            }`}
-            onClick={() => updateLog({ mealPhotos: hasMealPhoto ? [] : [MEAL_PLACEHOLDER] })}
-          >
-            {hasMealPhoto ? "Remove Placeholder Photo" : "Add Placeholder Photo"}
-          </button>
+          {hasMealPhoto ? (
+            <div className="mb-3 h-40 overflow-hidden rounded-2xl border-2 border-charcoal bg-mint">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img alt="Meal upload preview" className="h-full w-full object-cover" src={log.mealPhotos[0]} />
+            </div>
+          ) : null}
+          <div className="grid gap-2">
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-charcoal bg-coral px-3 py-3 text-sm font-black transition active:translate-y-0.5">
+              <ImagePlus className="h-4 w-4" />
+              {isUploadingMealPhoto ? "Uploading..." : hasMealPhoto ? "Replace Photo" : "Upload Photo"}
+              <input
+                accept="image/*"
+                className="sr-only"
+                disabled={isUploadingMealPhoto}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+
+                  if (file) {
+                    void uploadMealPhoto(file);
+                  }
+
+                  event.target.value = "";
+                }}
+                type="file"
+              />
+            </label>
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-charcoal bg-blue px-3 py-3 text-sm font-black transition active:translate-y-0.5">
+              <Camera className="h-4 w-4" />
+              Take Photo
+              <input
+                accept="image/*"
+                capture="environment"
+                className="sr-only"
+                disabled={isUploadingMealPhoto}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+
+                  if (file) {
+                    void uploadMealPhoto(file);
+                  }
+
+                  event.target.value = "";
+                }}
+                type="file"
+              />
+            </label>
+            {hasMealPhoto ? (
+              <button
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-charcoal bg-white px-3 py-3 text-sm font-black transition active:translate-y-0.5"
+                onClick={() => void removeMealPhotos()}
+              >
+                <Trash2 className="h-4 w-4" />
+                Remove Photo
+              </button>
+            ) : null}
+          </div>
         </section>
 
         <section className="doodle-card rounded-[1.5rem] bg-white p-4">

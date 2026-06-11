@@ -7,6 +7,7 @@ export const mockDataProvider: AppDataProvider = {
     const user = getCurrentUser();
 
     return {
+      competition,
       user,
       sibling: getSiblingUser(),
       todayLog: getTodayLog(user.id),

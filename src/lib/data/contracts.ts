@@ -3,6 +3,7 @@ import type { Competition, CompetitionSummary, DailyLog, Group, RivalAction, Use
 export type HomeData = {
   user: User;
   sibling: User;
+  competition: Competition;
   todayLog: DailyLog;
   latestRivalAction: RivalAction;
 };

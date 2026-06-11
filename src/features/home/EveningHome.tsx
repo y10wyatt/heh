@@ -1,20 +1,26 @@
 import { CalendarDays, Dumbbell, Scale } from "lucide-react";
+import { CompetitionCountdownCard } from "@/components/CompetitionCountdownCard";
 import { DailyRecapCard } from "@/components/DailyRecapCard";
 import { DoodleHeroCard } from "@/components/DoodleHeroCard";
-import { MascotBubble } from "@/components/MascotBubble";
 import { ProgressRaceCard } from "@/components/ProgressRaceCard";
 import { RivalActionCard } from "@/components/RivalActionCard";
-import type { CompetitionSummary, DailyLog, RivalAction, User } from "@/lib/types";
+import { TodayQuestCard } from "@/components/TodayQuestCard";
+import type { Competition, CompetitionSummary, DailyLog, RivalAction, User } from "@/lib/types";
 
 type EveningHomeProps = {
+  competition: Competition;
+  isUploadingMealPhoto?: boolean;
   user: User;
   sibling: User;
   log: DailyLog;
   action: RivalAction;
   summary: CompetitionSummary;
+  onLogChange?: (updates: Partial<DailyLog>) => void;
+  onMealPhotoRemove?: () => void;
+  onMealPhotoUpload?: (file: File) => void;
 };
 
-export function EveningHome({ user, sibling, log, action, summary }: EveningHomeProps) {
+export function EveningHome({ action, competition, log, onLogChange, sibling, summary, user }: EveningHomeProps) {
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between pt-1">
@@ -25,8 +31,9 @@ export function EveningHome({ user, sibling, log, action, summary }: EveningHome
         <span className="rounded-full border-2 border-charcoal bg-lavender px-3 py-1 text-sm font-black">PM</span>
       </header>
 
-      <MascotBubble message="Nice work today. Let's review the scoreboard and set up tomorrow." mood="focused" user={user} />
+      <CompetitionCountdownCard competition={competition} />
       <DoodleHeroCard action={action} log={log} user={user} />
+      <TodayQuestCard log={log} onQuestCompletedChange={(completed) => onLogChange?.({ completed })} />
       <DailyRecapCard log={log} weightUnit={user.weightUnit} />
       <ProgressRaceCard summary={summary} />
       <RivalActionCard action={action} target={sibling} />

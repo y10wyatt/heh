@@ -114,6 +114,15 @@ create table public.rival_actions (
 );
 ```
 
+## Storage
+
+Meal photos use a private Supabase Storage bucket:
+
+- Bucket: `meal-photos`
+- Object path shape: `{userId}/{date}/{photoId}.{extension}`
+- Policies allow signed-in users to select, insert, update, and delete only files under their own user-id folder.
+- `meal_logs.photo_url` stores the storage object path, not a permanent public URL. The app creates short-lived signed URLs when it needs to display the image.
+
 ## RLS Direction
 
 Enable row-level security on every table. Users should only read and write rows connected to groups where they are a `group_members` row.

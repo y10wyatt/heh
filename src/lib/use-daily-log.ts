@@ -10,13 +10,12 @@ function getStorageKey(log: DailyLog) {
 }
 
 export function normalizeDailyLog(log: DailyLog): DailyLog {
-  const completed = log.waterCups >= log.waterGoal && log.workoutCompleted;
-
   return {
     ...log,
     waterCups: Math.max(0, Math.min(log.waterCups, log.waterGoal)),
     mealPhotoBonusEarned: log.mealPhotos.length > 0,
-    completed,
+    mealPhotoPaths: log.mealPhotoPaths ?? [],
+    completed: Boolean(log.completed),
   };
 }
 

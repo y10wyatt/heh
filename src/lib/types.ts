@@ -30,6 +30,7 @@ export type DailyLog = {
   waterCups: number;
   waterGoal: number;
   mealPhotos: string[];
+  mealPhotoPaths: string[];
   workoutGoalMinutes: number;
   workoutMuscleGroups: MuscleGroup[];
   customWorkoutMuscleGroups: string[];
