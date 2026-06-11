@@ -2,9 +2,12 @@ import { CalendarDays, Dumbbell, Scale } from "lucide-react";
 import { CompetitionCountdownCard } from "@/components/CompetitionCountdownCard";
 import { DailyRecapCard } from "@/components/DailyRecapCard";
 import { DoodleHeroCard } from "@/components/DoodleHeroCard";
+import { HydrationTracker } from "@/components/HydrationTracker";
+import { MealPhotoCard } from "@/components/MealPhotoCard";
 import { ProgressRaceCard } from "@/components/ProgressRaceCard";
 import { RivalActionCard } from "@/components/RivalActionCard";
 import { TodayQuestCard } from "@/components/TodayQuestCard";
+import { WorkoutGoalCard } from "@/components/WorkoutGoalCard";
 import type { Competition, CompetitionSummary, DailyLog, RivalAction, User } from "@/lib/types";
 
 type EveningHomeProps = {
@@ -20,7 +23,7 @@ type EveningHomeProps = {
   onMealPhotoUpload?: (file: File) => void;
 };
 
-export function EveningHome({ action, competition, log, onLogChange, sibling, summary, user }: EveningHomeProps) {
+export function EveningHome({ action, competition, isUploadingMealPhoto, log, onLogChange, onMealPhotoRemove, onMealPhotoUpload, sibling, summary, user }: EveningHomeProps) {
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between pt-1">
@@ -35,6 +38,16 @@ export function EveningHome({ action, competition, log, onLogChange, sibling, su
       <DoodleHeroCard action={action} log={log} user={user} />
       <TodayQuestCard log={log} onQuestCompletedChange={(completed) => onLogChange?.({ completed })} />
       <DailyRecapCard log={log} weightUnit={user.weightUnit} />
+
+      <section className="doodle-card rounded-[1.5rem] bg-white p-4">
+        <h2 className="mb-3 text-sm font-black uppercase">Still Need To Log?</h2>
+        <div className="grid grid-cols-2 gap-3">
+          <HydrationTracker log={log} onWaterCupsChange={(waterCups) => onLogChange?.({ waterCups })} />
+          <WorkoutGoalCard log={log} />
+          <MealPhotoCard isUploading={isUploadingMealPhoto} log={log} onMealPhotoRemove={onMealPhotoRemove} onMealPhotoUpload={onMealPhotoUpload} />
+        </div>
+      </section>
+
       <ProgressRaceCard summary={summary} />
       <RivalActionCard action={action} target={sibling} />
 

@@ -134,6 +134,7 @@ The first migration includes MVP row-level security policies:
 - Daily logs and weight entries can only be inserted/updated for the current user on the current date.
 - Rival actions are cosmetic only.
 - User profiles store a preferred weight unit (`lb` or `kg`). Calculations use the number exactly as entered, so both players in a competition should choose the same unit for a fair comparison.
+- Group invites are reusable group codes. The app reuses the first invite code for a group instead of generating a new one every time, and invite redemption no longer marks the code as used.
 
 ## Apply Order
 

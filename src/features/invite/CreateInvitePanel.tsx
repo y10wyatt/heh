@@ -25,7 +25,7 @@ export function CreateInvitePanel() {
         </span>
         <div>
           <h1 className="text-2xl font-black">Invite Sibling</h1>
-          <p className="text-sm font-bold text-charcoal/60">Create a one-use code for your group.</p>
+          <p className="text-sm font-bold text-charcoal/60">Share your group&apos;s permanent invite code.</p>
         </div>
       </div>
 
@@ -34,7 +34,7 @@ export function CreateInvitePanel() {
         onClick={handleCreateInvite}
       >
         <Sparkles className="h-4 w-4" />
-        Create Invite Code
+        Show Invite Code
       </button>
 
       {code ? (

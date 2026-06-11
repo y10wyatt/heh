@@ -13,6 +13,11 @@
 - Added private Supabase Storage-backed meal photo uploads with signed preview URLs.
 - Merged Progress into Profile: progress stats now lead the Profile screen, while profile setup/edit controls live behind a Settings disclosure.
 - Removed the separate Progress tab from bottom navigation and redirected `/progress` to `/profile`.
+- Removed post-onboarding Sign In Setup/Onboarding shortcuts from Profile settings.
+- Added a password change form in Profile settings.
+- Home now switches morning/evening mode in the browser using the device's local time instead of server time.
+- Evening Review now includes quick controls to keep logging hydration, workout, and meal photo after review mode appears.
+- Group invites are now permanent reusable group codes instead of one-use expiring codes.
 
 ## 2026-06-09
 

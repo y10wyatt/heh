@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { MemberListCard } from "@/components/MemberListCard";
 import { ProgressRaceCard } from "@/components/ProgressRaceCard";
+import { PasswordSettingsForm } from "./PasswordSettingsForm";
 import { ProfileEditForm } from "./ProfileEditForm";
 import type { ProfileData } from "@/lib/data/contracts";
 import { signOut } from "@/lib/supabase/actions/session";
@@ -140,22 +141,8 @@ export function ProfileScreen({ profileData }: ProfileScreenProps) {
               );
             })}
 
-            <div className="grid grid-cols-2 gap-2">
-              <Link
-                className="rounded-2xl border-2 border-charcoal bg-peach px-4 py-2 text-center text-sm font-black shadow-[0_3px_0_rgba(45,45,45,0.12)] transition active:translate-y-0.5"
-                href="/auth/sign-in"
-              >
-                Sign In Setup
-              </Link>
-              <Link
-                className="rounded-2xl border-2 border-charcoal bg-mint px-4 py-2 text-center text-sm font-black shadow-[0_3px_0_rgba(45,45,45,0.12)] transition active:translate-y-0.5"
-                href="/onboarding"
-              >
-                Onboarding
-              </Link>
-            </div>
-
             <ProfileEditForm user={user} />
+            <PasswordSettingsForm />
 
             <form action={signOut}>
               <button className="doodle-card w-full rounded-[1.25rem] bg-white px-4 py-3 text-sm font-black transition active:translate-y-0.5" type="submit">

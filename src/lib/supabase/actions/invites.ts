@@ -28,6 +28,18 @@ export async function createGroupInvite(): Promise<InviteState> {
     return { error: "Finish onboarding before creating an invite." };
   }
 
+  const { data: existingInvite } = await supabase
+    .from("group_invites")
+    .select("code")
+    .eq("group_id", membership.group_id)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (existingInvite?.code) {
+    return { code: existingInvite.code };
+  }
+
   const code = createInviteCode();
   const { error } = await supabase.from("group_invites").insert({
     code,
@@ -60,12 +72,10 @@ export async function joinGroupWithInvite(_state: InviteState, formData: FormDat
     .from("group_invites")
     .select("*")
     .eq("code", code)
-    .is("used_at", null)
-    .gt("expires_at", new Date().toISOString())
     .maybeSingle();
 
   if (inviteError || !invite) {
-    return { error: "Invite code is invalid or expired." };
+    return { error: "Invite code is invalid." };
   }
 
   const { data: existingProfile } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
@@ -90,18 +100,6 @@ export async function joinGroupWithInvite(_state: InviteState, formData: FormDat
 
   if (memberError) {
     return { error: memberError.message };
-  }
-
-  const { error: inviteUpdateError } = await supabase
-    .from("group_invites")
-    .update({
-      used_at: new Date().toISOString(),
-      used_by: user.id,
-    })
-    .eq("id", invite.id);
-
-  if (inviteUpdateError) {
-    return { error: inviteUpdateError.message };
   }
 
   redirect("/");
