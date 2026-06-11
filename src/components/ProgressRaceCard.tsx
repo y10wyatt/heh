@@ -8,6 +8,7 @@ type ProgressRaceCardProps = {
 export function ProgressRaceCard({ summary }: ProgressRaceCardProps) {
   const total = Math.max(summary.youWeightLost + summary.siblingWeightLost, 1);
   const youPercent = Math.round((summary.youWeightLost / total) * 100);
+  const unit = summary.you.weightUnit;
 
   return (
     <section className="doodle-card rounded-[1.5rem] bg-white p-4">
@@ -19,13 +20,13 @@ export function ProgressRaceCard({ summary }: ProgressRaceCardProps) {
         <div>
           <p className="text-xs font-bold">You</p>
           <p className="text-3xl font-black">{summary.youWeightLost}</p>
-          <p className="text-xs font-bold">lbs down</p>
+          <p className="text-xs font-bold">{unit} down</p>
         </div>
         <div className="rounded-full border-2 border-charcoal bg-gold px-3 py-2 text-sm font-black">VS</div>
         <div>
           <p className="text-xs font-bold">Sibling</p>
           <p className="text-3xl font-black">{summary.siblingWeightLost}</p>
-          <p className="text-xs font-bold">lbs down</p>
+          <p className="text-xs font-bold">{unit} down</p>
         </div>
       </div>
       <div className="mt-5 flex items-center gap-2">

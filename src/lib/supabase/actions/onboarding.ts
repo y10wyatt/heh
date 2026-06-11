@@ -33,6 +33,12 @@ function getOptionalNumber(formData: FormData, key: string) {
   return parsed;
 }
 
+function getWeightUnit(formData: FormData) {
+  const value = formData.get("weightUnit");
+
+  return value === "kg" ? "kg" : "lb";
+}
+
 export async function completeOnboarding(_state: OnboardingState, formData: FormData): Promise<OnboardingState> {
   try {
     const supabase = await createSupabaseServerClient();
@@ -51,6 +57,7 @@ export async function completeOnboarding(_state: OnboardingState, formData: Form
     const startDate = getRequiredString(formData, "startDate");
     const endDate = getRequiredString(formData, "endDate");
     const avatarId = getRequiredString(formData, "avatarId");
+    const weightUnit = getWeightUnit(formData);
     const weeklyWeighInDay = Number(getRequiredString(formData, "weeklyWeighInDay"));
     const startingWeight = getOptionalNumber(formData, "startingWeight");
     const goalWeight = getOptionalNumber(formData, "goalWeight");
@@ -66,27 +73,27 @@ export async function completeOnboarding(_state: OnboardingState, formData: Form
       display_name: displayName,
       goal_weight: goalWeight,
       starting_weight: startingWeight,
+      weight_unit: weightUnit,
     });
 
     if (profileError) {
       return { error: profileError.message };
     }
 
-    const { data: group, error: groupError } = await supabase
-      .from("groups")
-      .insert({
-        created_by: user.id,
-        name: groupName,
-      })
-      .select("id")
-      .single();
+    const groupId = crypto.randomUUID();
 
-    if (groupError || !group) {
+    const { error: groupError } = await supabase.from("groups").insert({
+      id: groupId,
+      created_by: user.id,
+      name: groupName,
+    });
+
+    if (groupError) {
       return { error: groupError?.message ?? "Could not create group." };
     }
 
     const { error: memberError } = await supabase.from("group_members").insert({
-      group_id: group.id,
+      group_id: groupId,
       role: "owner",
       user_id: user.id,
     });
@@ -97,7 +104,7 @@ export async function completeOnboarding(_state: OnboardingState, formData: Form
 
     const { error: competitionError } = await supabase.from("competitions").insert({
       end_date: endDate,
-      group_id: group.id,
+      group_id: groupId,
       name: competitionName,
       start_date: startDate,
       water_goal: 8,

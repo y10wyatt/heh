@@ -1,4 +1,5 @@
 export type AvatarId = "mint-blob" | "peach-blob" | "lavender-blob";
+export type WeightUnit = "lb" | "kg";
 
 export type MuscleGroup =
   | "full-body"
@@ -15,6 +16,7 @@ export type User = {
   name: string;
   displayName: string;
   avatar: AvatarId;
+  weightUnit: WeightUnit;
   startingWeight: number;
   currentWeight: number;
   goalWeight: number;

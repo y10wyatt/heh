@@ -6,5 +6,5 @@ export const dynamic = "force-dynamic";
 export default async function LogPage() {
   const logData = await getLogPageData();
 
-  return <LogScreen seedLog={logData.todayLog} weeklyWeighInDay={logData.competition.weeklyWeighInDay} />;
+  return <LogScreen seedLog={logData.todayLog} weightUnit={logData.user.weightUnit} weeklyWeighInDay={logData.competition.weeklyWeighInDay} />;
 }

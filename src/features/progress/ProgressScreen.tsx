@@ -9,6 +9,7 @@ type ProgressScreenProps = {
 export function ProgressScreen({ progressData }: ProgressScreenProps) {
   const { summary, weeklyTrend } = progressData;
   const hasTrendData = weeklyTrend.some((day) => day.you > 0 || day.sibling > 0);
+  const unit = summary.you.weightUnit;
 
   return (
     <AppShell activeTab="progress">
@@ -44,7 +45,7 @@ export function ProgressScreen({ progressData }: ProgressScreenProps) {
         <div className="grid grid-cols-2 gap-3">
           <section className="doodle-card rounded-[1.25rem] bg-mint p-4">
             <h2 className="text-sm font-black uppercase">Your Week</h2>
-            <p className="mt-2 text-3xl font-black">{summary.youWeightLost} lbs</p>
+            <p className="mt-2 text-3xl font-black">{summary.youWeightLost} {unit}</p>
             <p className="text-xs font-bold text-charcoal/65">{summary.youPercentLost}% from start</p>
           </section>
           <section className="doodle-card rounded-[1.25rem] bg-coral p-4">

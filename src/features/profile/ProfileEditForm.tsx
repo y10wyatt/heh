@@ -28,6 +28,13 @@ export function ProfileEditForm({ user }: ProfileEditFormProps) {
             <option value="lavender-blob">Lavender</option>
           </select>
         </label>
+        <label className="block">
+          <span className="mb-1 block text-xs font-black uppercase text-charcoal/60">Weight Unit</span>
+          <select className="w-full rounded-2xl border-2 border-charcoal bg-cream px-3 py-2 font-bold outline-none focus:bg-gold" defaultValue={user.weightUnit} name="weightUnit">
+            <option value="lb">Pounds (lb)</option>
+            <option value="kg">Kilograms (kg)</option>
+          </select>
+        </label>
         <div className="grid grid-cols-2 gap-3">
           <label className="block">
             <span className="mb-1 block text-xs font-black uppercase text-charcoal/60">Starting</span>

@@ -16,8 +16,9 @@ export function ProfileScreen({ profileData }: ProfileScreenProps) {
   const settings = [
     { label: "Display Name", value: user.displayName, icon: UserRound },
     { label: "Group", value: group.name, icon: UserRound },
-    { label: "Starting Weight", value: `${user.startingWeight} lbs`, icon: Scale },
-    { label: "Goal Weight", value: `${user.goalWeight} lbs`, icon: Goal },
+    { label: "Weight Unit", value: user.weightUnit.toUpperCase(), icon: Scale },
+    { label: "Starting Weight", value: `${user.startingWeight} ${user.weightUnit}`, icon: Scale },
+    { label: "Goal Weight", value: `${user.goalWeight} ${user.weightUnit}`, icon: Goal },
     { label: "Competition Dates", value: `${competition.startDate} to ${competition.endDate}`, icon: Calendar },
   ];
 

@@ -39,6 +39,7 @@ function toUser(profile: ProfileRow, latestWeights: Map<string, number>): User {
     goalWeight: toNumber(profile.goal_weight),
     name: profile.display_name,
     startingWeight,
+    weightUnit: profile.weight_unit === "kg" ? "kg" : "lb",
   };
 }
 
@@ -51,6 +52,7 @@ function createWaitingSibling(): User {
     goalWeight: 0,
     name: "Waiting for sibling",
     startingWeight: 0,
+    weightUnit: "lb",
   };
 }
 

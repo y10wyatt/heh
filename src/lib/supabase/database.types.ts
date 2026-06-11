@@ -15,6 +15,7 @@ export type Database = {
           id: string;
           display_name: string;
           avatar_id: string;
+          weight_unit: "lb" | "kg";
           starting_weight: number | null;
           current_weight: number | null;
           goal_weight: number | null;
@@ -25,6 +26,7 @@ export type Database = {
           id: string;
           display_name: string;
           avatar_id?: string;
+          weight_unit?: "lb" | "kg";
           starting_weight?: number | null;
           current_weight?: number | null;
           goal_weight?: number | null;

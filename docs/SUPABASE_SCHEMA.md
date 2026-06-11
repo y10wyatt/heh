@@ -13,6 +13,7 @@ create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null,
   avatar_id text not null default 'mint-blob',
+  weight_unit text not null default 'lb',
   starting_weight numeric,
   current_weight numeric,
   goal_weight numeric,
@@ -123,6 +124,7 @@ The first migration includes MVP row-level security policies:
 - Groups, members, competitions, logs, workouts, meals, and rival actions are limited to group/competition members.
 - Daily logs and weight entries can only be inserted/updated for the current user on the current date.
 - Rival actions are cosmetic only.
+- User profiles store a preferred weight unit (`lb` or `kg`). Calculations use the number exactly as entered, so both players in a competition should choose the same unit for a fair comparison.
 
 ## Apply Order
 

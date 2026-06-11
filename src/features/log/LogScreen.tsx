@@ -3,7 +3,7 @@
 import { Camera, Dumbbell, Droplet, RotateCcw, Save, Scale } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { getWeeklyWeighInMessage } from "@/lib/competition/weekly";
-import type { DailyLog, MuscleGroup } from "@/lib/types";
+import type { DailyLog, MuscleGroup, WeightUnit } from "@/lib/types";
 import { usePersistentDailyLog } from "@/lib/use-persistent-daily-log";
 
 const MEAL_PLACEHOLDER = "/assets/meal-placeholder.svg";
@@ -20,10 +20,11 @@ const muscleGroupOptions: Array<{ label: string; value: MuscleGroup }> = [
 
 type LogScreenProps = {
   seedLog: DailyLog;
+  weightUnit: WeightUnit;
   weeklyWeighInDay: number;
 };
 
-export function LogScreen({ seedLog, weeklyWeighInDay }: LogScreenProps) {
+export function LogScreen({ seedLog, weeklyWeighInDay, weightUnit }: LogScreenProps) {
   const { isLoading, log, resetLog, source, statusMessage, updateLog } = usePersistentDailyLog(seedLog);
   const hasMealPhoto = log.mealPhotos.length > 0;
   const selectedMuscleGroup = log.workoutMuscleGroups[0] ?? "full-body";
@@ -43,7 +44,7 @@ export function LogScreen({ seedLog, weeklyWeighInDay }: LogScreenProps) {
             </span>
             <span className="flex-1">
               <span className="block text-sm font-black uppercase">Weight</span>
-              <span className="block text-xs font-bold text-charcoal/60">Today&apos;s weigh-in</span>
+              <span className="block text-xs font-bold text-charcoal/60">Today&apos;s weigh-in ({weightUnit})</span>
             </span>
             <input
               className="w-24 rounded-2xl border-2 border-charcoal bg-cream px-3 py-2 text-right text-base font-black outline-none focus:bg-blue"

@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-06-11
+
+- Added `profiles.weight_unit` with allowed values `lb` and `kg`.
+- Added onboarding/profile UI controls for weight units and replaced hard-coded `lbs` labels with the active profile unit.
+- Fixed onboarding group creation by generating the group id in the server action and inserting without an immediate `.select()`. This avoids the RLS timing issue where a brand-new group is not selectable until its owner membership exists.
+- Verified with `npm run build`, `npm run lint`, and a Supabase schema check.
+
 ## 2026-06-09
 
 - Created initial Next.js, TypeScript, and Tailwind app structure.

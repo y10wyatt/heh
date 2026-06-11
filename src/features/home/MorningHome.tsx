@@ -36,7 +36,7 @@ export function MorningHome({ user, log, onLogChange, summary }: MorningHomeProp
           detail="Saved from Log"
           icon={<Scale className="h-5 w-5" />}
           title="Weight"
-          value={`${log.weight ?? user.currentWeight} lbs`}
+          value={`${log.weight ?? user.currentWeight} ${user.weightUnit}`}
         />
         <HydrationTracker log={log} onWaterCupsChange={(waterCups) => onLogChange?.({ waterCups })} />
         <MealPhotoCard

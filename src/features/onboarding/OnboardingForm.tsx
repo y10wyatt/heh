@@ -64,6 +64,13 @@ export function OnboardingForm() {
             <p className="text-xs font-bold text-charcoal/60">Exact weight stays private.</p>
           </div>
         </div>
+        <label className="mt-4 block">
+          <span className="mb-1 block text-xs font-black uppercase text-charcoal/60">Weight Unit</span>
+          <select className="w-full rounded-2xl border-2 border-charcoal bg-cream px-3 py-3 font-bold outline-none focus:bg-gold" defaultValue="lb" name="weightUnit">
+            <option value="lb">Pounds (lb)</option>
+            <option value="kg">Kilograms (kg)</option>
+          </select>
+        </label>
         <div className="grid grid-cols-2 gap-3">
           <label className="block">
             <span className="mb-1 block text-xs font-black uppercase text-charcoal/60">Starting</span>

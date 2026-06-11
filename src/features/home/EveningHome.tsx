@@ -27,7 +27,7 @@ export function EveningHome({ user, sibling, log, action, summary }: EveningHome
 
       <MascotBubble message="Nice work today. Let's review the scoreboard and set up tomorrow." mood="focused" user={user} />
       <DoodleHeroCard action={action} log={log} user={user} />
-      <DailyRecapCard log={log} />
+      <DailyRecapCard log={log} weightUnit={user.weightUnit} />
       <ProgressRaceCard summary={summary} />
       <RivalActionCard action={action} target={sibling} />
 

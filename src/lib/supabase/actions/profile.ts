@@ -19,6 +19,12 @@ function getOptionalNumber(formData: FormData, key: string) {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
+function getWeightUnit(formData: FormData) {
+  const value = formData.get("weightUnit");
+
+  return value === "kg" ? "kg" : "lb";
+}
+
 export async function updateProfile(_state: ProfileState, formData: FormData): Promise<ProfileState> {
   const supabase = await createSupabaseServerClient();
   const {
@@ -31,6 +37,7 @@ export async function updateProfile(_state: ProfileState, formData: FormData): P
 
   const displayName = String(formData.get("displayName") ?? "").trim();
   const avatarId = String(formData.get("avatarId") ?? "mint-blob");
+  const weightUnit = getWeightUnit(formData);
 
   if (!displayName) {
     return { error: "Display name is required." };
@@ -43,6 +50,7 @@ export async function updateProfile(_state: ProfileState, formData: FormData): P
       display_name: displayName,
       goal_weight: getOptionalNumber(formData, "goalWeight"),
       starting_weight: getOptionalNumber(formData, "startingWeight"),
+      weight_unit: weightUnit,
     })
     .eq("id", user.id);
 

@@ -1,13 +1,14 @@
 import { Camera, Check, Dumbbell, Droplet, Scale } from "lucide-react";
-import type { DailyLog } from "@/lib/types";
+import type { DailyLog, WeightUnit } from "@/lib/types";
 
 type DailyRecapCardProps = {
   log: DailyLog;
+  weightUnit: WeightUnit;
 };
 
-export function DailyRecapCard({ log }: DailyRecapCardProps) {
+export function DailyRecapCard({ log, weightUnit }: DailyRecapCardProps) {
   const rows = [
-    { label: "Weight", value: log.weight ? `${log.weight} lbs` : "Optional today", done: true, icon: Scale },
+    { label: "Weight", value: log.weight ? `${log.weight} ${weightUnit}` : "Optional today", done: true, icon: Scale },
     { label: "Hydration Goal", value: `${log.waterCups} / ${log.waterGoal} cups`, done: log.waterCups >= log.waterGoal, icon: Droplet },
     { label: "Meal Bonus", value: log.mealPhotos.length ? "Bonus earned" : "Optional", done: log.mealPhotos.length > 0, icon: Camera },
     { label: "Workout", value: log.workoutCompleted ? "Done" : `${log.workoutGoalMinutes} min planned`, done: log.workoutCompleted, icon: Dumbbell },
