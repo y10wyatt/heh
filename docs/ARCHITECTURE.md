@@ -2,7 +2,7 @@
 
 ## Current MVP
 
-The app is a Next.js App Router project with local mock data plus browser `localStorage` persistence for today's daily log. Supabase and authentication are the next planned architecture step. Apple Health and AI meal analysis are intentionally deferred.
+The app is a Next.js App Router project with Supabase Auth, Supabase-backed daily data, and local mock data kept as a development fallback. Apple Health and AI meal analysis are intentionally deferred.
 
 ## File Map
 
@@ -63,10 +63,10 @@ Update: Home, Log, Progress, and Profile now use the Supabase read model for sig
 
 ## Invite Flow
 
-`/invite` lets an onboarded user create a one-use invite code. `/join?code=...` lets the second player join the same group after sign-in. The `group_invites` table tracks invite code usage.
+`/invite` lets an onboarded user show the group's permanent invite code. `/join?code=...` lets another player join the same group after sign-in. The first invite generated for a group is reused instead of creating a new code each time.
 
 ## Time-Based Home
 
-`src/app/page.tsx` calls `isEveningReviewTime()` from `src/lib/time.ts`.
+`src/features/home/HomeClient.tsx` calls `isEveningReviewTime()` from `src/lib/time.ts` in the browser, so the user's device timezone controls whether the morning or evening home appears.
 
 To change the evening cutoff, edit `EVENING_CUTOFF_HOUR` in `src/lib/time.ts`.
