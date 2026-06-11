@@ -12,7 +12,7 @@ export function ProgressScreen({ progressData }: ProgressScreenProps) {
   const unit = summary.you.weightUnit;
 
   return (
-    <AppShell activeTab="progress">
+    <AppShell activeTab="profile">
       <div className="space-y-4">
         <header>
           <p className="text-xs font-black uppercase text-charcoal/55">Weekly Comparison</p>

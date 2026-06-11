@@ -19,6 +19,8 @@ export type ProfileData = {
   group: Group;
   competition: Competition;
   members: User[];
+  summary: CompetitionSummary;
+  weeklyTrend: WeeklyTrendPoint[];
 };
 
 export type AppDataProvider = {

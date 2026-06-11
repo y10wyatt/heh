@@ -55,11 +55,15 @@ export const mockDataProvider: AppDataProvider = {
   },
 
   getProfileData() {
+    const progressData = this.getProgressData();
+
     return {
       user: getCurrentUser(),
       group: groups[0],
       competition,
       members: users,
+      summary: progressData.summary,
+      weeklyTrend: progressData.weeklyTrend,
     };
   },
 };

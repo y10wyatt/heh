@@ -362,12 +362,21 @@ export async function getProgressPageData() {
 }
 
 export async function getProfilePageData() {
-  const { competition, context, group, user } = await getPageModels();
+  const supabase = await createSupabaseServerClient();
+  const { competition, context, group, sibling, user } = await getPageModels();
+  const { data: weeklyWeights } = await supabase
+    .from("weight_entries")
+    .select("*")
+    .eq("competition_id", competition.id)
+    .gte("entry_date", new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA"));
+  const weeklyTrend = buildWeeklyTrend(weeklyWeights ?? [], user, sibling);
 
   return {
     competition,
     group,
     members: context.memberProfiles.map((profile) => toUser(profile, context.latestWeights)),
+    summary: buildSummary(user, sibling, weeklyTrend),
+    weeklyTrend,
     user,
   };
 }

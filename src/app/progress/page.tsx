@@ -1,10 +1,7 @@
-import { ProgressScreen } from "@/features/progress/ProgressScreen";
-import { getProgressPageData } from "@/lib/data/supabase-read-model";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProgressPage() {
-  const progressData = await getProgressPageData();
-
-  return <ProgressScreen progressData={progressData} />;
+  redirect("/profile");
 }

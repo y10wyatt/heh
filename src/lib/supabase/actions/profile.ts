@@ -60,7 +60,6 @@ export async function updateProfile(_state: ProfileState, formData: FormData): P
 
   revalidatePath("/profile");
   revalidatePath("/");
-  revalidatePath("/progress");
 
   return { message: "Profile saved." };
 }

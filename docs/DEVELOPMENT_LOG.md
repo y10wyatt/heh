@@ -11,6 +11,8 @@
 - Changed the Home workout card to link to the full Log screen instead of acting as a simple done toggle.
 - Changed `DailyLog.completed` into a manual Today Quest toggle.
 - Added private Supabase Storage-backed meal photo uploads with signed preview URLs.
+- Merged Progress into Profile: progress stats now lead the Profile screen, while profile setup/edit controls live behind a Settings disclosure.
+- Removed the separate Progress tab from bottom navigation and redirected `/progress` to `/profile`.
 
 ## 2026-06-09
 

@@ -3,7 +3,7 @@ import { BottomNav } from "./BottomNav";
 
 type AppShellProps = {
   children: ReactNode;
-  activeTab: "home" | "log" | "progress" | "profile";
+  activeTab: "home" | "log" | "profile";
 };
 
 export function AppShell({ children, activeTab }: AppShellProps) {
