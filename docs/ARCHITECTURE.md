@@ -47,7 +47,9 @@ Beginner tip: this is the "middleman" pattern. The UI asks the middleman for dat
 - group membership
 - first competition
 
-The main app still reads mock/local data until the Supabase data provider replaces `mockDataProvider`.
+Auth email redirects are built with `NEXT_PUBLIC_APP_URL` through `src/lib/app-url.ts`. This prevents localhost links from being sent when someone signs in from a local development tab.
+
+Supabase's default email sender is rate-limited and is not meant for real production use. For reliable sign-up and magic-link emails, configure custom SMTP in Supabase Auth settings. For a private beta, another pragmatic option is disabling email confirmation and using password sign-up, then enabling confirmation again after SMTP is configured.
 
 ## Daily Log Sync
 

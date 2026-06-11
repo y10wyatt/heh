@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Mail, Sparkles } from "lucide-react";
+import { buildAuthCallbackUrl } from "@/lib/app-url";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -10,6 +11,16 @@ type AuthMode = "magic-link" | "password";
 type SignInFormProps = {
   nextPath?: string;
 };
+
+function formatAuthMessage(message: string) {
+  const normalizedMessage = message.toLowerCase();
+
+  if (normalizedMessage.includes("rate limit")) {
+    return "Supabase email limit was reached. Wait before trying again, or ask William to finish the email setup.";
+  }
+
+  return message;
+}
 
 export function SignInForm({ nextPath = "/onboarding" }: SignInFormProps) {
   const [authMode, setAuthMode] = useState<AuthMode>("magic-link");
@@ -31,7 +42,7 @@ export function SignInForm({ nextPath = "/onboarding" }: SignInFormProps) {
     setMessage(null);
 
     const supabase = createSupabaseBrowserClient();
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+    const redirectTo = buildAuthCallbackUrl(nextPath, window.location.origin);
     const result =
       authMode === "magic-link"
         ? await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } })
@@ -40,7 +51,7 @@ export function SignInForm({ nextPath = "/onboarding" }: SignInFormProps) {
     setIsSubmitting(false);
 
     if (result.error) {
-      setMessage(result.error.message);
+      setMessage(formatAuthMessage(result.error.message));
       return;
     }
 
@@ -62,7 +73,7 @@ export function SignInForm({ nextPath = "/onboarding" }: SignInFormProps) {
     setMessage(null);
 
     const supabase = createSupabaseBrowserClient();
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+    const redirectTo = buildAuthCallbackUrl(nextPath, window.location.origin);
     const result = await supabase.auth.signUp({
       email,
       password,
@@ -75,7 +86,11 @@ export function SignInForm({ nextPath = "/onboarding" }: SignInFormProps) {
     });
 
     setIsSubmitting(false);
-    setMessage(result.error ? result.error.message : "Account created. Check your email if confirmation is required.");
+    setMessage(
+      result.error
+        ? formatAuthMessage(result.error.message)
+        : "Account created. Check your email if confirmation is required.",
+    );
   }
 
   return (
