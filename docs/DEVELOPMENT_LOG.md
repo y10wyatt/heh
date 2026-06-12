@@ -20,6 +20,7 @@
 - Group invites are now permanent reusable group codes instead of one-use expiring codes.
 - Added a public app URL helper for auth email redirects so localhost links are not sent from development sessions.
 - Added clearer sign-in messaging when Supabase email rate limits are hit.
+- Fixed invite joining by adding `group_members` self-select/self-update RLS policies and changing the join action from `upsert` to insert-with-duplicate-as-success.
 
 ## 2026-06-09
 

@@ -92,13 +92,17 @@ export async function joinGroupWithInvite(_state: InviteState, formData: FormDat
     }
   }
 
-  const { error: memberError } = await supabase.from("group_members").upsert({
+  const { error: memberError } = await supabase.from("group_members").insert({
     group_id: invite.group_id,
     role: "member",
     user_id: user.id,
   });
 
   if (memberError) {
+    if (memberError.code === "23505") {
+      redirect("/");
+    }
+
     return { error: memberError.message };
   }
 
