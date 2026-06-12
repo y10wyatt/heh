@@ -22,6 +22,15 @@ export type User = {
   goalWeight: number;
 };
 
+export type WorkoutLogEntry = {
+  id: string;
+  completed: boolean;
+  durationMinutes: number | null;
+  muscleGroups: MuscleGroup[];
+  customMuscleGroups: string[];
+  createdAt: string;
+};
+
 export type DailyLog = {
   id: string;
   userId: string;
@@ -35,6 +44,7 @@ export type DailyLog = {
   workoutMuscleGroups: MuscleGroup[];
   customWorkoutMuscleGroups: string[];
   workoutCompleted: boolean;
+  workoutLogs: WorkoutLogEntry[];
   mealPhotoBonusEarned: boolean;
   completed: boolean;
 };

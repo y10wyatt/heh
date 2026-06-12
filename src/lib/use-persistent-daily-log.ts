@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "./supabase/browser-client";
 import { hasSupabaseEnv } from "./supabase/env";
-import type { DailyLog, MuscleGroup } from "./types";
+import type { DailyLog, MuscleGroup, WorkoutLogEntry } from "./types";
 import { normalizeDailyLog } from "./use-daily-log";
 
 type PersistenceSource = "loading" | "supabase" | "local";
@@ -56,6 +56,24 @@ async function createSignedMealPhotoUrls(paths: string[]) {
   );
 
   return signedUrls.filter((url): url is string => Boolean(url));
+}
+
+function toWorkoutLogEntry(row: {
+  id: string;
+  completed: boolean;
+  duration_minutes: number | null;
+  muscle_groups: string[];
+  custom_muscle_groups: string[];
+  created_at: string;
+}): WorkoutLogEntry {
+  return {
+    id: row.id,
+    completed: row.completed,
+    createdAt: row.created_at,
+    customMuscleGroups: row.custom_muscle_groups ?? [],
+    durationMinutes: row.duration_minutes,
+    muscleGroups: (row.muscle_groups ?? []) as MuscleGroup[],
+  };
 }
 
 export function usePersistentDailyLog(seedLog: DailyLog) {
@@ -143,8 +161,17 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
       const { data: mealLogs } = dailyLog
         ? await supabase.from("meal_logs").select("photo_url").eq("daily_log_id", dailyLog.id).eq("user_id", user.id).order("created_at", { ascending: false })
         : { data: null };
+      const { data: workoutLogs } = dailyLog
+        ? await supabase
+            .from("workout_logs")
+            .select("id, completed, duration_minutes, muscle_groups, custom_muscle_groups, created_at")
+            .eq("daily_log_id", dailyLog.id)
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+        : { data: null };
       const mealPhotoPaths = mealLogs?.map((mealLog) => mealLog.photo_url).filter((path): path is string => Boolean(path)) ?? [];
       const mealPhotos = await createSignedMealPhotoUrls(mealPhotoPaths);
+      const workoutEntries = workoutLogs?.map(toWorkoutLogEntry) ?? [];
 
       const nextLog = normalizeDailyLog({
         ...seedLog,
@@ -158,8 +185,9 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
         waterCups: dailyLog?.water_cups ?? 0,
         waterGoal: dailyLog?.water_goal ?? competitions[0].water_goal,
         weight: weightEntry?.weight ?? null,
-        workoutCompleted: dailyLog?.workout_completed ?? false,
+        workoutCompleted: workoutEntries.length > 0 || dailyLog?.workout_completed || false,
         workoutGoalMinutes: dailyLog?.workout_goal_minutes ?? seedLog.workoutGoalMinutes,
+        workoutLogs: workoutEntries,
         workoutMuscleGroups: (dailyLog?.workout_muscle_groups ?? seedLog.workoutMuscleGroups) as MuscleGroup[],
       });
 
@@ -244,6 +272,7 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
       waterCups: 0,
       weight: null,
       workoutCompleted: false,
+      workoutLogs: [],
     });
 
     setLog(reset);
@@ -261,6 +290,7 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
       }
       if (!log.id.startsWith("log-")) {
         await supabase.from("meal_logs").delete().eq("daily_log_id", log.id).eq("user_id", context.userId);
+        await supabase.from("workout_logs").delete().eq("daily_log_id", log.id).eq("user_id", context.userId);
       }
       await saveToSupabase(reset, context);
       return;
@@ -288,10 +318,6 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
     }
 
     const supabase = createSupabaseBrowserClient();
-    if (currentLog.mealPhotoPaths.length > 0) {
-      await supabase.storage.from("meal-photos").remove(currentLog.mealPhotoPaths);
-      await supabase.from("meal_logs").delete().eq("daily_log_id", dailyLogId).eq("user_id", context.userId);
-    }
 
     const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const storagePath = `${context.userId}/${currentLog.date}/${crypto.randomUUID()}.${extension}`;
@@ -319,10 +345,69 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
       return;
     }
 
-    const mealPhotos = await createSignedMealPhotoUrls([storagePath]);
-    updateLog({ mealPhotoPaths: [storagePath], mealPhotos });
+    const mealPhotoPaths = [storagePath, ...currentLog.mealPhotoPaths];
+    const mealPhotos = await createSignedMealPhotoUrls(mealPhotoPaths);
+    updateLog({ mealPhotoPaths, mealPhotos });
     setStatusMessage("Meal photo uploaded.");
     setIsUploadingMealPhoto(false);
+  }
+
+  async function addWorkoutLog(entry: {
+    customMuscleGroups?: string[];
+    durationMinutes: number | null;
+    muscleGroups: MuscleGroup[];
+  }) {
+    const nextLog = normalizeDailyLog({
+      ...log,
+      customWorkoutMuscleGroups: entry.customMuscleGroups ?? [],
+      workoutCompleted: true,
+      workoutGoalMinutes: entry.durationMinutes ?? log.workoutGoalMinutes,
+      workoutMuscleGroups: entry.muscleGroups,
+    });
+
+    if (source !== "supabase" || !context) {
+      const localEntry: WorkoutLogEntry = {
+        id: crypto.randomUUID(),
+        completed: true,
+        createdAt: new Date().toISOString(),
+        customMuscleGroups: entry.customMuscleGroups ?? [],
+        durationMinutes: entry.durationMinutes,
+        muscleGroups: entry.muscleGroups,
+      };
+      updateLog({ ...nextLog, workoutLogs: [localEntry, ...log.workoutLogs] });
+      setStatusMessage("Workout saved on this device.");
+      return true;
+    }
+
+    const dailyLogId = await saveToSupabase(nextLog, context);
+
+    if (!dailyLogId) {
+      return false;
+    }
+
+    const supabase = createSupabaseBrowserClient();
+    const { data: workoutLog, error } = await supabase
+      .from("workout_logs")
+      .insert({
+        completed: true,
+        custom_muscle_groups: entry.customMuscleGroups ?? [],
+        daily_log_id: dailyLogId,
+        duration_minutes: entry.durationMinutes,
+        muscle_groups: entry.muscleGroups,
+        user_id: context.userId,
+      })
+      .select("id, completed, duration_minutes, muscle_groups, custom_muscle_groups, created_at")
+      .single();
+
+    if (error) {
+      setStatusMessage(error.message);
+      return false;
+    }
+
+    const workoutEntries = workoutLog ? [toWorkoutLogEntry(workoutLog), ...log.workoutLogs] : log.workoutLogs;
+    updateLog({ ...nextLog, workoutLogs: workoutEntries });
+    setStatusMessage("Workout logged.");
+    return true;
   }
 
   async function removeMealPhotos() {
@@ -343,6 +428,7 @@ export function usePersistentDailyLog(seedLog: DailyLog) {
   }
 
   return {
+    addWorkoutLog,
     isUploadingMealPhoto,
     isLoading: source === "loading",
     log,

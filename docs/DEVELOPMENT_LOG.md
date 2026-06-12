@@ -21,6 +21,10 @@
 - Added a public app URL helper for auth email redirects so localhost links are not sent from development sessions.
 - Added clearer sign-in messaging when Supabase email rate limits are hit.
 - Fixed invite joining by adding `group_members` self-select/self-update RLS policies and changing the join action from `upsert` to insert-with-duplicate-as-success.
+- Moved the Supabase/local sync reset card from Log into Profile settings.
+- Changed Log weight entry to an explicit Save Weight action with confirmation messaging.
+- Changed workout logging from a one-time done toggle into a per-day workout history backed by `workout_logs`.
+- Changed meal photos from replace-one-photo behavior into a same-day gallery backed by multiple `meal_logs`.
 
 ## 2026-06-09
 

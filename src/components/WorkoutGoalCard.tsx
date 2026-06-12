@@ -18,6 +18,9 @@ export function WorkoutGoalCard({ log }: WorkoutGoalCardProps) {
       <p className="text-3xl font-black">
         {log.workoutGoalMinutes} <span className="text-sm">min</span>
       </p>
+      <p className="mt-1 text-xs font-black text-charcoal/60">
+        {log.workoutLogs.length ? `${log.workoutLogs.length} workout${log.workoutLogs.length === 1 ? "" : "s"} logged today` : "No workout logged yet"}
+      </p>
       <Link
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-charcoal bg-gold px-3 py-2 text-center text-sm font-black transition active:translate-y-0.5"
         href="/log"

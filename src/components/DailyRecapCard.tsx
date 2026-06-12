@@ -10,8 +10,8 @@ export function DailyRecapCard({ log, weightUnit }: DailyRecapCardProps) {
   const rows = [
     { label: "Weight", value: log.weight ? `${log.weight} ${weightUnit}` : "Optional today", done: true, icon: Scale },
     { label: "Hydration Goal", value: `${log.waterCups} / ${log.waterGoal} cups`, done: log.waterCups >= log.waterGoal, icon: Droplet },
-    { label: "Meal Bonus", value: log.mealPhotos.length ? "Bonus earned" : "Optional", done: log.mealPhotos.length > 0, icon: Camera },
-    { label: "Workout", value: log.workoutCompleted ? "Done" : `${log.workoutGoalMinutes} min planned`, done: log.workoutCompleted, icon: Dumbbell },
+    { label: "Meal Bonus", value: log.mealPhotos.length ? `${log.mealPhotos.length} photo${log.mealPhotos.length === 1 ? "" : "s"}` : "Optional", done: log.mealPhotos.length > 0, icon: Camera },
+    { label: "Workout", value: log.workoutLogs.length ? `${log.workoutLogs.length} logged` : `${log.workoutGoalMinutes} min planned`, done: log.workoutCompleted, icon: Dumbbell },
   ];
 
   return (

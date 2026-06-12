@@ -5,6 +5,7 @@ import { MemberListCard } from "@/components/MemberListCard";
 import { ProgressRaceCard } from "@/components/ProgressRaceCard";
 import { PasswordSettingsForm } from "./PasswordSettingsForm";
 import { ProfileEditForm } from "./ProfileEditForm";
+import { SyncSettingsCard } from "./SyncSettingsCard";
 import type { ProfileData } from "@/lib/data/contracts";
 import { signOut } from "@/lib/supabase/actions/session";
 
@@ -13,7 +14,7 @@ type ProfileScreenProps = {
 };
 
 export function ProfileScreen({ profileData }: ProfileScreenProps) {
-  const { competition, group, members, summary, user, weeklyTrend } = profileData;
+  const { competition, group, members, summary, todayLog, user, weeklyTrend } = profileData;
   const hasTrendData = weeklyTrend.some((day) => day.you > 0 || day.sibling > 0);
   const unit = user.weightUnit;
 
@@ -141,6 +142,7 @@ export function ProfileScreen({ profileData }: ProfileScreenProps) {
               );
             })}
 
+            <SyncSettingsCard seedLog={todayLog} />
             <ProfileEditForm user={user} />
             <PasswordSettingsForm />
 

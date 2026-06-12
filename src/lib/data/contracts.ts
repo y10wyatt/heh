@@ -20,6 +20,7 @@ export type ProfileData = {
   competition: Competition;
   members: User[];
   summary: CompetitionSummary;
+  todayLog: DailyLog;
   weeklyTrend: WeeklyTrendPoint[];
 };
 

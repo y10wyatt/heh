@@ -11,6 +11,7 @@ type GroupRow = Database["public"]["Tables"]["groups"]["Row"];
 type MealLogRow = Database["public"]["Tables"]["meal_logs"]["Row"];
 type RivalActionRow = Database["public"]["Tables"]["rival_actions"]["Row"];
 type WeightEntryRow = Database["public"]["Tables"]["weight_entries"]["Row"];
+type WorkoutLogRow = Database["public"]["Tables"]["workout_logs"]["Row"];
 
 type AppContext = {
   competition: CompetitionRow;
@@ -100,9 +101,21 @@ async function getMealPhotoUrls(mealLogs: MealLogRow[] | null | undefined) {
   };
 }
 
-async function toDailyLog(row: DailyLogRow | null, userId: string, competition: CompetitionRow, weight: number | null, mealLogs?: MealLogRow[] | null): Promise<DailyLog> {
+function toWorkoutLogEntry(row: WorkoutLogRow): DailyLog["workoutLogs"][number] {
+  return {
+    id: row.id,
+    completed: row.completed,
+    createdAt: row.created_at,
+    customMuscleGroups: row.custom_muscle_groups ?? [],
+    durationMinutes: row.duration_minutes,
+    muscleGroups: (row.muscle_groups ?? []) as DailyLog["workoutMuscleGroups"],
+  };
+}
+
+async function toDailyLog(row: DailyLogRow | null, userId: string, competition: CompetitionRow, weight: number | null, mealLogs?: MealLogRow[] | null, workoutLogs?: WorkoutLogRow[] | null): Promise<DailyLog> {
   const today = getLocalDate();
   const mealPhotos = await getMealPhotoUrls(mealLogs);
+  const workoutEntries = workoutLogs?.map(toWorkoutLogEntry) ?? [];
 
   return {
     id: row?.id ?? `log-${userId}-${today}`,
@@ -116,8 +129,9 @@ async function toDailyLog(row: DailyLogRow | null, userId: string, competition: 
     waterCups: row?.water_cups ?? 0,
     waterGoal: row?.water_goal ?? competition.water_goal,
     weight,
-    workoutCompleted: row?.workout_completed ?? false,
+    workoutCompleted: workoutEntries.length > 0 || row?.workout_completed || false,
     workoutGoalMinutes: row?.workout_goal_minutes ?? 30,
+    workoutLogs: workoutEntries,
     workoutMuscleGroups: row?.workout_muscle_groups?.length ? (row.workout_muscle_groups as DailyLog["workoutMuscleGroups"]) : ["full-body"],
   };
 }
@@ -302,7 +316,10 @@ export async function getHomePageData() {
   const { data: mealLogs } = dailyLog
     ? await supabase.from("meal_logs").select("*").eq("daily_log_id", dailyLog.id).eq("user_id", context.userId).order("created_at", { ascending: false })
     : { data: null };
-  const todayLog = await toDailyLog(dailyLog, user.id, context.competition, weightEntry?.weight ?? null, mealLogs);
+  const { data: workoutLogs } = dailyLog
+    ? await supabase.from("workout_logs").select("*").eq("daily_log_id", dailyLog.id).eq("user_id", context.userId).order("created_at", { ascending: false })
+    : { data: null };
+  const todayLog = await toDailyLog(dailyLog, user.id, context.competition, weightEntry?.weight ?? null, mealLogs, workoutLogs);
   const siblingDailyLog = null;
 
   return {
@@ -336,10 +353,13 @@ export async function getLogPageData() {
   const { data: mealLogs } = dailyLog
     ? await supabase.from("meal_logs").select("*").eq("daily_log_id", dailyLog.id).eq("user_id", context.userId).order("created_at", { ascending: false })
     : { data: null };
+  const { data: workoutLogs } = dailyLog
+    ? await supabase.from("workout_logs").select("*").eq("daily_log_id", dailyLog.id).eq("user_id", context.userId).order("created_at", { ascending: false })
+    : { data: null };
 
   return {
     competition,
-    todayLog: await toDailyLog(dailyLog, user.id, context.competition, weightEntry?.weight ?? null, mealLogs),
+    todayLog: await toDailyLog(dailyLog, user.id, context.competition, weightEntry?.weight ?? null, mealLogs, workoutLogs),
     user,
   };
 }
@@ -364,18 +384,41 @@ export async function getProgressPageData() {
 export async function getProfilePageData() {
   const supabase = await createSupabaseServerClient();
   const { competition, context, group, sibling, user } = await getPageModels();
+  const today = getLocalDate();
   const { data: weeklyWeights } = await supabase
     .from("weight_entries")
     .select("*")
     .eq("competition_id", competition.id)
     .gte("entry_date", new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA"));
+  const { data: dailyLog } = await supabase
+    .from("daily_logs")
+    .select("*")
+    .eq("competition_id", competition.id)
+    .eq("user_id", context.userId)
+    .eq("log_date", today)
+    .maybeSingle();
+  const { data: weightEntry } = await supabase
+    .from("weight_entries")
+    .select("weight")
+    .eq("competition_id", competition.id)
+    .eq("user_id", context.userId)
+    .eq("entry_date", today)
+    .maybeSingle();
+  const { data: mealLogs } = dailyLog
+    ? await supabase.from("meal_logs").select("*").eq("daily_log_id", dailyLog.id).eq("user_id", context.userId).order("created_at", { ascending: false })
+    : { data: null };
+  const { data: workoutLogs } = dailyLog
+    ? await supabase.from("workout_logs").select("*").eq("daily_log_id", dailyLog.id).eq("user_id", context.userId).order("created_at", { ascending: false })
+    : { data: null };
   const weeklyTrend = buildWeeklyTrend(weeklyWeights ?? [], user, sibling);
+  const todayLog = await toDailyLog(dailyLog, user.id, context.competition, weightEntry?.weight ?? null, mealLogs, workoutLogs);
 
   return {
     competition,
     group,
     members: context.memberProfiles.map((profile) => toUser(profile, context.latestWeights)),
-    summary: buildSummary(user, sibling, weeklyTrend),
+    summary: buildSummary(user, sibling, weeklyTrend, todayLog),
+    todayLog,
     weeklyTrend,
     user,
   };

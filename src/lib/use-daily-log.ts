@@ -15,6 +15,7 @@ export function normalizeDailyLog(log: DailyLog): DailyLog {
     waterCups: Math.max(0, Math.min(log.waterCups, log.waterGoal)),
     mealPhotoBonusEarned: log.mealPhotos.length > 0,
     mealPhotoPaths: log.mealPhotoPaths ?? [],
+    workoutLogs: log.workoutLogs ?? [],
     completed: Boolean(log.completed),
   };
 }

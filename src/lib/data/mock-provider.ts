@@ -63,6 +63,7 @@ export const mockDataProvider: AppDataProvider = {
       competition,
       members: users,
       summary: progressData.summary,
+      todayLog: getTodayLog(getCurrentUser().id),
       weeklyTrend: progressData.weeklyTrend,
     };
   },
