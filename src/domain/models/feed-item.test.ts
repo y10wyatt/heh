@@ -1,0 +1,2 @@
+import {describe,expect,it} from "vitest";import {toFeedItem} from "./feed-item";import type {RoomAction} from "./rooms";
+describe("FeedItem boundary",()=>it("maps RoomAction without creating ActionEvent",()=>{const action={id:"r",actorId:"u",targetRoomId:"room",challengeGroupId:"g",actionType:"prank",result:"applied",createdAt:"now",metadata:{summary:"Tiny flag added"}} as RoomAction;expect(toFeedItem(action)).toMatchObject({kind:"room_action",title:"Tiny flag added"})}));

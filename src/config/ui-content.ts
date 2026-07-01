@@ -1,0 +1,76 @@
+export const uiContent = {
+  navigation: [
+    { to: "/", icon: "⌂", label: "Home" },
+    { to: "/log", icon: "✓", label: "Log" },
+    { to: "/feed", icon: "●", label: "Feed" },
+    { to: "/rooms", icon: "⌘", label: "Rooms" },
+    { to: "/rules", icon: "⚙", label: "Rules" },
+  ],
+  home: {
+    title: "Sibling Challenge", subtitle: "Weekly accountability race",
+    pointsLabel: "points", todayTitle: "Today",
+    actions: [
+      { to: "/log", label: "Quick Log" },
+      { to: "/feed", label: "Send Challenge" },
+      { to: "/results", label: "Weekly Results" },
+    ],
+    today: ["🏋️ Workout logged", "🌙 Sleep pending", "👥 2 challenges"],
+  },
+  quickLog: {
+    title: "Quick Log", subtitle: "Record today’s progress",
+    positiveLabel: "＋ Points", penaltyLabel: "− Penalty",
+    notePlaceholder: "Optional note", saveLabel: "Save Log",
+    options: [
+      { label: "Workout", icon: "🏋️" }, { label: "Meal", icon: "🍴" },
+      { label: "Sleep", icon: "🌙" }, { label: "Work", icon: "💼" },
+      { label: "Custom", icon: "⭐" },
+    ],
+    completedDescription: "Completed or stayed on plan", missedDescription: "Missed today",
+  },
+  feed: {
+    title: "Challenge Feed", subtitle: "Playful accountability updates",
+    sendLabel: "Send Challenge", filterLabel: "Filter",
+    roomLabel: "Room activity", roomTitle: "Sister left a tiny flag",
+  },
+  results: {
+    title: "Weekly Results", subtitle: "How the race is going",
+    leaderLabel: "Current Leader", leadSummary: "You’re ahead by 4 points!",
+    chartTitle: "Daily points comparison", finalizeLabel: "Finalize Day",
+    finalizeHint: "Finalization is atomic in Supabase and can only succeed once per local day.",
+    dayLabels: ["M", "T", "W", "T", "F", "S", "S"],
+  },
+  rules: {
+    title: "Point Rules", subtitle: "Keep the race fair and clear",
+    historyTitle: "Historical scoring",
+    historyBody: "Finalized days keep the exact rule IDs and versions used. Editing a rule never rewrites history.",
+  },
+  rooms: {
+    title: "Rooms", subtitle: "Cozy spaces, light mischief",
+    mischiefToken: "⚡ 1 Mischief", defenseToken: "🛡 1 Defense",
+    descriptions: ["Your cozy workshop", "A breezy room above the clouds"],
+    ownActions: ["Enter My Room", "Set Traps"], otherActions: ["Visit Room", "Raid"],
+    viewSubtitle: "Tap a slot to see its status", recentTitle: "Recent changes",
+    recentBody: "Tiny flag added · Lighting warmed · Poster moved",
+    decorateLabel: "Decorate", raidLabel: "Enter Raid Mode", trapsLabel: "Set Traps",
+  },
+  raid: {
+    title: "Raid Mode", subtitle: "One token, one harmless change",
+    token: "1 Mischief Token", chooseTitle: "Choose an action",
+    actions: ["Add confetti", "Place funny poster", "Add tiny flag", "Change lighting"],
+    protectedTitle: "Protected slots", protectedBody: "Wall and bed are locked. A trap may be active.",
+    confirmPrefix: "Confirm",
+  },
+  traps: {
+    title: "Trap Setup", subtitle: "Defend without spoiling the fun",
+    token: "1 Defense Token", protectedTitle: "Protected slots · 2/2",
+    protectedBody: "Wall 🔒 · Bed 🔒", saveLabel: "Set Trap",
+    types: ["Alarm bell", "Glue trap", "Decoy object", "Mirror trap", "Lock trap"],
+  },
+  result: {
+    title: "Prank Applied!", subtitle: "The room survived the mischief",
+    heading: "Tiny flag planted",
+    summary: "Feed summary: William added a tiny flag to Sister’s shelf.",
+    technicalResult: "RoomAction result: applied",
+    roomLabel: "Return to room", feedLabel: "View feed",
+  },
+} as const;

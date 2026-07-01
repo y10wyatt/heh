@@ -1,0 +1,2 @@
+import {describe,expect,it} from "vitest";import {mapActionEvent} from "./action-event";
+describe("ActionEvent mapping",()=>it("maps snake case and keeps v1",()=>expect(mapActionEvent({id:"1",user_id:"u",source_app:"sibling_showdown",action_type:"action_completed",title:"Done",occurred_at:"a",created_at:"b",visibility:"private",schema_version:1,metadata:{}})).toMatchObject({userId:"u",schemaVersion:1})));

@@ -1,0 +1,3 @@
+-- Intentionally empty.
+-- Authenticated two-user fixtures belong in pgTAP setup transactions so
+-- development resets do not create shared passwords or production-like users.
