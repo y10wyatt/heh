@@ -35,3 +35,12 @@ npx supabase db advisors --local
 ## Approval gate
 
 Record command output and failures in the development log. Only present the migration for remote approval after every scenario passes.
+
+## Current result — 2026-07-01
+
+- Migration reset: passed.
+- pgTAP: 27 tests passed.
+- Database lint: no schema errors.
+- Security/performance advisors: no issues.
+- Verified: private/group visibility, forged-event rejection, idempotent daily result/rewards, one-time entitlement use, protected-slot blocking, applied room mutation, and tie defense rewards.
+- Remaining: true simultaneous-client concurrency test and explicit trap-type matrix.

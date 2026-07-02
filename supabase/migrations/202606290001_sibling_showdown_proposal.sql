@@ -32,6 +32,7 @@ create index room_traps_active on public.room_traps(room_id,status,expires_at);
 
 create or replace function sibling_private.is_member(g uuid) returns boolean language sql stable security definer set search_path='' as $$select exists(select 1 from public.challenge_group_members m where m.challenge_group_id=g and m.user_id=(select auth.uid()))$$;
 revoke all on function sibling_private.is_member(uuid) from public,anon,authenticated;
+grant execute on function sibling_private.is_member(uuid) to authenticated;
 
 alter table public.profiles enable row level security;alter table public.challenge_groups enable row level security;alter table public.challenge_group_members enable row level security;alter table public.action_events enable row level security;alter table public.challenges enable row level security;alter table public.point_rules enable row level security;alter table public.comments enable row level security;alter table public.rooms enable row level security;alter table public.room_slots enable row level security;alter table public.room_items enable row level security;alter table public.room_actions enable row level security;alter table public.room_action_entitlements enable row level security;alter table public.room_traps enable row level security;alter table public.daily_results enable row level security;
 create policy profiles_self on public.profiles for all to authenticated using(id=(select auth.uid())) with check(id=(select auth.uid()));
@@ -92,7 +93,7 @@ begin
  return result;
 end$$;
 create or replace function sibling_private.apply_room_action(p_entitlement_id uuid,p_target_room_id uuid,p_slot_id uuid,p_item_id uuid,p_action_type text) returns public.room_actions language plpgsql security definer set search_path='' as $$
-declare actor uuid:=(select auth.uid());e public.room_action_entitlements;r public.rooms;s public.room_slots;t public.room_traps;a public.room_actions;outcome text:='applied';details jsonb:='{}';
+declare actor uuid:=(select auth.uid());e public.room_action_entitlements;r public.rooms;s public.room_slots;t public.room_traps;a public.room_actions;outcome text:='applied';details jsonb:='{}'::jsonb;
 begin
  if actor is null then raise exception 'not authenticated';end if;
  select * into e from public.room_action_entitlements where id=p_entitlement_id and user_id=actor and used_at is null and(expires_at is null or expires_at>now()) for update;
