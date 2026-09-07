@@ -1,0 +1,11 @@
+delete from public.room_actions where challenge_group_id='20000000-0000-4000-8000-000000000010';
+delete from public.room_action_entitlements where challenge_group_id='20000000-0000-4000-8000-000000000010';
+delete from public.room_slots where room_id='20000000-0000-4000-8000-000000000020';
+delete from public.rooms where challenge_group_id='20000000-0000-4000-8000-000000000010';
+delete from public.room_items where id='20000000-0000-4000-8000-000000000030';
+delete from public.daily_results where challenge_group_id='20000000-0000-4000-8000-000000000010';
+delete from public.action_events where challenge_group_id='20000000-0000-4000-8000-000000000010';
+delete from public.point_rules where challenge_group_id='20000000-0000-4000-8000-000000000010';
+delete from public.challenge_group_members where challenge_group_id='20000000-0000-4000-8000-000000000010';
+delete from public.challenge_groups where id='20000000-0000-4000-8000-000000000010';
+delete from auth.users where id in('20000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000002');

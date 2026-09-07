@@ -14,4 +14,12 @@ RLS plan:
 - Unique event IDs, `(group, date)` daily results, and `(group, user, date, entitlement type)` entitlements prevent duplicate records.
 - Views, if added, must use `security_invoker = true`.
 
-Review blocker: entitlement issuance, minimum participation, duplicate finalization, authorization, and core trap outcomes are implemented in the proposal. The migration must still be exercised against a local Supabase instance with concurrent-call and RLS integration tests before approval to apply remotely.
+Local review evidence:
+
+- Clean migration reset and database lint.
+- 42 pgTAP schema, RLS, transaction, reward, protected-slot, and trap tests.
+- Simultaneous-client proof that `finalize_day` creates one result/reward set.
+- Simultaneous-client proof that `apply_room_action` creates one mutation and consumes one entitlement once.
+- 19 application tests and a successful production build.
+
+Review blocker: explicit owner approval is required before this proposal is applied to the shared remote Supabase project.

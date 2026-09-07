@@ -1,11 +1,83 @@
-import {useState} from "react";import {Link,useNavigate,useParams} from "react-router-dom";
+import {useEffect,useState} from "react";
+import {Link,useLocation,useNavigate,useParams} from "react-router-dom";
+import {useAppData} from "../../app/AppDataProvider";
+import {useGameData} from "../../app/GameDataProvider";
 import {Button,Card,PageHeader,StatusChip} from "../../components/ui";
 import {VisualAsset} from "../../components/VisualAsset";
 import {uiContent} from "../../config/ui-content";
-import {rooms,slots,users} from "../../dev/seed";
+import type {RoomAction,RoomSlot} from "../../domain/models/rooms";
 
-export function RoomsHomePage(){const copy=uiContent.rooms;return <><PageHeader title={copy.title} subtitle={copy.subtitle}/><div className="token-row"><StatusChip tone="orange">{copy.mischiefToken}</StatusChip><StatusChip tone="blue">{copy.defenseToken}</StatusChip></div>{rooms.map((room,index)=>{const own=index===0;const labels=own?copy.ownActions:copy.otherActions;return <Card className="room-card" key={room.id}><div className={`room-preview theme-${room.theme}`}><VisualAsset asset={own?"roomWorkshop":"roomSky"}/><span>🔒 🔒</span></div><h2>{room.name}</h2><p>{copy.descriptions[index]}</p><div className="split"><Link className="button-link" to={`/rooms/${room.id}`}>{labels[0]}</Link><Link to={own?"/rooms/room-w/traps":"/rooms/room-s/raid"}>{labels[1]}</Link></div></Card>})}</>}
-export function RoomViewPage(){const {roomId}=useParams();const copy=uiContent.rooms;const room=rooms.find(item=>item.id===roomId)??rooms[0];return <><PageHeader title={room.name} subtitle={copy.viewSubtitle}/><div className="room-canvas">{slots.slice(0,8).map(slot=><div className={slot.isProtected?"protected":""} key={slot.id}>{slot.slotKey}{slot.isProtected?<span aria-label="Protected">🔒</span>:null}</div>)}</div><Card><h2>{copy.recentTitle}</h2><p>{copy.recentBody}</p></Card><div className="split"><Button>{copy.decorateLabel}</Button>{room.ownerId!==users.william?<Link className="button-link" to={`/rooms/${room.id}/raid`}>{copy.raidLabel}</Link>:<Link to={`/rooms/${room.id}/traps`}>{copy.trapsLabel}</Link>}</div></>}
-export function RaidPage(){const copy=uiContent.raid;const navigate=useNavigate();const [action,setAction]=useState<string>(copy.actions[0]);return <><PageHeader title={copy.title} subtitle={copy.subtitle}/><Card><StatusChip tone="orange">{copy.token}</StatusChip><h2>{copy.chooseTitle}</h2><div role="radiogroup" aria-label={copy.chooseTitle}>{copy.actions.map(item=><button type="button" role="radio" aria-checked={action===item} className={`choice ${action===item?"selected":""}`} onClick={()=>setAction(item)} key={item}>{item}</button>)}</div></Card><Card><h2>{copy.protectedTitle}</h2><p>{copy.protectedBody}</p></Card><Button onClick={()=>navigate("/room-action-result",{state:{action}})}>{copy.confirmPrefix} {action}</Button></>}
-export function TrapSetupPage(){const copy=uiContent.traps;const [selected,setSelected]=useState<string>(copy.types[0]);return <><PageHeader title={copy.title} subtitle={copy.subtitle}/><StatusChip tone="blue">{copy.token}</StatusChip><Card><div role="radiogroup" aria-label="Trap type">{copy.types.map(type=><button type="button" role="radio" aria-checked={selected===type} onClick={()=>setSelected(type)} className={`choice ${selected===type?"selected":""}`} key={type}>{type}</button>)}</div></Card><Card><h2>{copy.protectedTitle}</h2><p>{copy.protectedBody}</p></Card><Button>{copy.saveLabel}</Button></>}
-export function RoomActionResultPage(){const copy=uiContent.result;return <><PageHeader title={copy.title} subtitle={copy.subtitle}/><Card className="result"><VisualAsset asset="resultCelebration"/><h2>{copy.heading}</h2><p>{copy.summary}</p><code>{copy.technicalResult}</code></Card><div className="split"><Link className="button-link" to="/rooms/room-s">{copy.roomLabel}</Link><Link to="/feed">{copy.feedLabel}</Link></div></>}
+export function RoomsHomePage(){
+  const copy=uiContent.rooms;
+  const {currentUserId}=useAppData();
+  const {rooms,entitlements,loading,error}=useGameData();
+  const mischief=entitlements.filter(item=>item.entitlementType==="mischief").length;
+  const defense=entitlements.filter(item=>item.entitlementType==="defense").length;
+  return <><PageHeader title={copy.title} subtitle={copy.subtitle}/>
+    <Card className="house-overview"><div><VisualAsset asset="houseAirship"/><span>William</span><span>Sister</span></div><h2>{copy.overviewTitle}</h2><p>{copy.overviewBody}</p></Card>
+    <div className="token-row"><StatusChip tone="orange">⚡ {mischief} Mischief</StatusChip><StatusChip tone="blue">🛡 {defense} Defense</StatusChip></div>
+    {error?<p role="alert" className="error">{error}</p>:null}
+    {loading?<p role="status">Loading house…</p>:rooms.map(room=>{const own=room.ownerId===currentUserId;const labels=own?copy.ownActions:copy.otherActions;return <Card className="room-card" key={room.id}><div className={`room-preview theme-${room.theme}`}><VisualAsset asset={own?"williamFullBody":"sisterFullBody"}/><span>🔒 🔒</span></div><h2>{room.name}</h2><p>{own?"Your cozy room":"Your sibling’s room"}</p><div className="split"><Link className="button-link" to={`/house/rooms/${room.id}`}>{labels[0]}</Link><Link to={own?`/house/rooms/${room.id}/traps`:`/house/rooms/${room.id}/raid`}>{labels[1]}</Link></div></Card>})}
+  </>;
+}
+
+export function RoomViewPage(){
+  const {roomId=""}=useParams();
+  const copy=uiContent.rooms;
+  const {currentUserId}=useAppData();
+  const {rooms,loadSlots}=useGameData();
+  const room=rooms.find(item=>item.id===roomId);
+  const [slots,setSlots]=useState<RoomSlot[]>([]);
+  useEffect(()=>{if(roomId)void loadSlots(roomId).then(setSlots)},[roomId,loadSlots]);
+  if(!room)return <><PageHeader title="Room unavailable" subtitle="This room is not in your challenge group"/></>;
+  const own=room.ownerId===currentUserId;
+  return <><PageHeader title={room.name} subtitle={copy.viewSubtitle}/><div className={`room-scene theme-${room.theme}`}><VisualAsset asset={own?"williamFullBody":"sisterFullBody"} className="full-avatar"/><div className="room-canvas">{slots.map(slot=><div className={slot.isProtected?"protected":""} key={slot.id}>{slot.slotKey}{slot.isProtected?<span aria-label="Protected">🔒</span>:null}</div>)}</div></div><Card><h2>{copy.recentTitle}</h2><p>{copy.recentBody}</p></Card><div className="split"><Button>{copy.decorateLabel}</Button>{own?<Link to={`/house/rooms/${room.id}/traps`}>{copy.trapsLabel}</Link>:<Link className="button-link" to={`/house/rooms/${room.id}/raid`}>{copy.raidLabel}</Link>}</div></>;
+}
+
+export function RaidPage(){
+  const {roomId=""}=useParams();
+  const copy=uiContent.raid;
+  const navigate=useNavigate();
+  const {rooms,entitlements,items,loadSlots,applyRoomAction}=useGameData();
+  const room=rooms.find(entry=>entry.id===roomId);
+  const entitlement=entitlements.find(entry=>entry.entitlementType==="mischief"&&entry.targetUserId===room?.ownerId);
+  const [actionIndex,setActionIndex]=useState(0);
+  const [slots,setSlots]=useState<RoomSlot[]>([]);
+  const [slotId,setSlotId]=useState("");
+  const [submitting,setSubmitting]=useState(false);
+  const [error,setError]=useState("");
+  useEffect(()=>{if(roomId)void loadSlots(roomId).then(next=>{setSlots(next);setSlotId(next.find(slot=>!slot.isProtected)?.id??"")})},[roomId,loadSlots]);
+  const selectedItem=items[actionIndex]??items[0];
+  async function confirm(){
+    if(!entitlement||!room||!slotId)return;
+    setSubmitting(true);setError("");
+    try{
+      const roomAction=await applyRoomAction({entitlementId:entitlement.id,targetRoomId:room.id,slotId,itemId:selectedItem?.id,actionType:"prank"});
+      navigate("/room-action-result",{state:{roomAction}});
+    }catch(reason){setError(reason instanceof Error?reason.message:"Room action failed")}
+    finally{setSubmitting(false)}
+  }
+  return <><PageHeader title={copy.title} subtitle={copy.subtitle}/>
+    <Card><StatusChip tone="orange">{entitlement?"1 Mischief Token":"No Mischief Token"}</StatusChip><h2>{copy.chooseTitle}</h2><div role="radiogroup" aria-label={copy.chooseTitle}>{copy.actions.map((item,index)=><button type="button" role="radio" aria-checked={actionIndex===index} className={`choice ${actionIndex===index?"selected":""}`} onClick={()=>setActionIndex(index)} key={item}>{item}</button>)}</div></Card>
+    <Card><h2>Choose room slot</h2><div role="radiogroup" aria-label="Choose room slot">{slots.map(slot=><button type="button" role="radio" disabled={slot.isProtected} aria-checked={slotId===slot.id} onClick={()=>setSlotId(slot.id)} className={`choice ${slotId===slot.id?"selected":""}`} key={slot.id}>{slot.slotKey}{slot.isProtected?" · Protected":""}</button>)}</div><p>{copy.protectedBody}</p></Card>
+    {error?<p role="alert" className="error">{error}</p>:null}
+    <Button onClick={confirm} disabled={!entitlement||!slotId||submitting}>{submitting?"Resolving trap…":`${copy.confirmPrefix} ${copy.actions[actionIndex]}`}</Button>
+  </>;
+}
+
+export function TrapSetupPage(){
+  const copy=uiContent.traps;
+  const {entitlements}=useGameData();
+  const [selected,setSelected]=useState<string>(copy.types[0]);
+  const defense=entitlements.filter(item=>item.entitlementType==="defense").length;
+  return <><PageHeader title={copy.title} subtitle={copy.subtitle}/><StatusChip tone="blue">{defense} Defense Token</StatusChip><Card><div role="radiogroup" aria-label="Trap type">{copy.types.map(type=><button type="button" role="radio" aria-checked={selected===type} onClick={()=>setSelected(type)} className={`choice ${selected===type?"selected":""}`} key={type}>{type}</button>)}</div></Card><Card><h2>{copy.protectedTitle}</h2><p>{copy.protectedBody}</p></Card><Button disabled={!defense}>{copy.saveLabel}</Button></>;
+}
+
+export function RoomActionResultPage(){
+  const copy=uiContent.result;
+  const location=useLocation();
+  const {lastRoomAction}=useGameData();
+  const action=(location.state as {roomAction?:RoomAction}|null)?.roomAction??lastRoomAction;
+  const heading=action?({applied:"Prank applied",blocked:"Protected slot blocked it",reflected:"Prank reflected",trap_triggered:"Trap triggered",reverted:"Change reverted"} as const)[action.result]:copy.heading;
+  return <><PageHeader title={heading} subtitle={copy.subtitle}/><Card className="result"><VisualAsset asset="resultCelebration"/><h2>{heading}</h2><p>{action?`Feed summary: room action ${action.result}.`:copy.summary}</p><code>{action?`RoomAction ${action.id} · ${action.result}`:copy.technicalResult}</code></Card><div className="split"><Link className="button-link" to={action?`/house/rooms/${action.targetRoomId}`:"/house"}>{copy.roomLabel}</Link><Link to="/feed">{copy.feedLabel}</Link></div></>;
+}

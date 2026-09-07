@@ -39,8 +39,9 @@ Record command output and failures in the development log. Only present the migr
 ## Current result — 2026-07-01
 
 - Migration reset: passed.
-- pgTAP: 27 tests passed.
+- pgTAP: 42 tests passed.
 - Database lint: no schema errors.
 - Security/performance advisors: no issues.
-- Verified: private/group visibility, forged-event rejection, idempotent daily result/rewards, one-time entitlement use, protected-slot blocking, applied room mutation, and tie defense rewards.
-- Remaining: true simultaneous-client concurrency test and explicit trap-type matrix.
+- Verified: private/group visibility, forged-event rejection, idempotent daily result/rewards, one-time entitlement use, protected-slot blocking, applied room mutation, tie defense rewards, and glue/mirror/alarm/decoy/lock trap outcomes.
+- Simultaneous-client harness: passed. Two `finalize_day` calls produced one result and reward set; two `apply_room_action` calls produced one mutation and consumed one entitlement once.
+- Remaining before remote application: owner approval of `docs/SCHEMA_RLS_PLAN.md`.

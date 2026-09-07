@@ -1,6 +1,6 @@
 import type {ActionEvent} from "../domain/models/action-event";
 import type {PointRule} from "../domain/models/core";
-import type {Room,RoomSlot} from "../domain/models/rooms";
+import type {Room,RoomActionEntitlement,RoomItem,RoomSlot} from "../domain/models/rooms";
 export const users={william:"00000000-0000-4000-8000-000000000001",sister:"00000000-0000-4000-8000-000000000002"};
 export const groupId="00000000-0000-4000-8000-000000000010";
 const now=new Date().toISOString();
@@ -18,3 +18,13 @@ export const rooms:Room[]=[
  {id:"room-s",ownerId:users.sister,challengeGroupId:groupId,name:"Sister’s Sky Room",theme:"sky_room",createdAt:now,updatedAt:now}
 ];
 export const slots:RoomSlot[]=["wall","floor","desk","bed","shelf","window","poster","lighting","trap-1","trap-2","note"].map((slotKey,i)=>({id:`slot-${i}`,roomId:"room-s",slotKey,slotType:slotKey.startsWith("trap")?"trap":slotKey==="lighting"?"lighting":slotKey==="note"?"note":"decor",isProtected:i===0||i===3}));
+export const roomItems:RoomItem[]=[
+ {id:"item-flag",name:"Tiny flag",itemType:"sticker",rarity:"common",effectType:"visual",metadata:{}},
+ {id:"item-confetti",name:"Confetti",itemType:"mess",rarity:"common",effectType:"temporary",metadata:{}},
+ {id:"item-poster",name:"Funny poster",itemType:"poster",rarity:"common",effectType:"visual",metadata:{}},
+ {id:"item-light",name:"Warm lighting",itemType:"lighting",rarity:"common",effectType:"visual",metadata:{}},
+];
+export const entitlements:RoomActionEntitlement[]=[
+ {id:"entitlement-mischief",challengeGroupId:groupId,userId:users.william,targetUserId:users.sister,entitlementType:"mischief",sourceDate:now.slice(0,10),createdAt:now},
+ {id:"entitlement-defense",challengeGroupId:groupId,userId:users.william,targetUserId:users.william,entitlementType:"defense",sourceDate:now.slice(0,10),createdAt:now},
+];

@@ -10,7 +10,8 @@ export type VisualAsset = {
  */
 export const visualAssets: Record<
   "mascot"|"trophy"|"williamAvatar"|"sisterAvatar"|"roomActivity"|
-  "resultCelebration"|"roomWorkshop"|"roomSky",
+  "resultCelebration"|"roomWorkshop"|"roomSky"|"williamFullBody"|"sisterFullBody"|
+  "houseAirship"|"confettiEffect"|"shieldEffect",
   VisualAsset
 > = {
   mascot: { fallback: "🐹", alt: "Hamster pilot mascot" },
@@ -21,6 +22,11 @@ export const visualAssets: Record<
   resultCelebration: { fallback: "🎉", alt: "Celebration" },
   roomWorkshop: { fallback: "🐹", alt: "William's workshop room" },
   roomSky: { fallback: "🐹", alt: "Sister's sky room" },
+  williamFullBody: { fallback: "🐹", alt: "William full-body hamster avatar" },
+  sisterFullBody: { fallback: "🐹", alt: "Sister full-body hamster avatar" },
+  houseAirship: { fallback: "🏠", alt: "Shared steampunk airship house" },
+  confettiEffect: { fallback: "🎊", alt: "Harmless confetti prank effect" },
+  shieldEffect: { fallback: "🛡", alt: "Protected room slot effect" },
 };
 
 export type VisualAssetKey = keyof typeof visualAssets;

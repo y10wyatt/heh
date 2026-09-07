@@ -5,3 +5,12 @@ export type Challenge={id:string;groupId:string;creatorId:string;targetUserId:st
 export type PointRule={id:string;groupId:string;version:number;actionType:string;category?:string;points:number;active:boolean};
 export type Comment={id:string;groupId:string;authorId:string;body:string;createdAt:string};
 export type WeeklyScore={userId:string;points:number};
+export type DailyResult={
+  id:string;
+  challengeGroupId:string;
+  localDate:string;
+  scores:Record<string,number>;
+  appliedRules:Array<Record<string,unknown>>;
+  tie:boolean;
+  createdAt:string;
+};
