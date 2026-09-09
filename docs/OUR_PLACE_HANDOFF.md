@@ -1,6 +1,6 @@
 # Our Place handoff
 
-Updated September 8, 2026.
+Updated September 9, 2026.
 
 ## Current main-app state
 
@@ -76,7 +76,7 @@ npm run build
 
 Preview: `http://127.0.0.1:5173/`.
 
-Last verified September 8: 8 test files and 29 tests passed; the production TypeScript/Vite build passed. Mobile Home and room captures at 426×932 passed visual comparison. Evidence is in the root `design-qa.md` and `qa/` directory.
+Last verified September 9: 9 test files and 31 tests passed; the production TypeScript/Vite build passed. Mobile Home and room captures at 426×932 previously passed visual comparison. Evidence is in the root `design-qa.md` and `qa/` directory.
 
 ## Resume the reference prototype
 
@@ -117,25 +117,26 @@ Browser QA note: generic automation scrolling moved the outer `.device-screen` a
 ## Supabase/Vercel findings
 
 - Life Dashboard has Supabase magic-link/password auth and per-user `dashboard_snapshots` JSON storage. Our Place now implements the same three account entry methods while retaining its own repositories and tables. No Realtime subscriptions were found in the inspected Life Dashboard source.
-- The account entry screen is live in production and reads the existing Vercel project's browser-safe Supabase variables. Supabase's production Site URL/redirect allow-list still needs owner login verification before relying on confirmation or magic-link return paths.
+- The account entry screen is live in production. The selected project's production, preview, and local Auth redirects have been verified, and explicit browser-safe Supabase variables are stored for all three Vercel environments. The current production deployment predates that Vercel variable update.
 - Its local Vercel project link does not verify deployment health or remote environment values.
 - Its `docs/STAGING.md` calls for a separate staging Supabase project and a separate Vercel project or staging-configured preview.
 - Recommend a separate Our Place Vercel project and staging database for the beta. Reusing Life Dashboard's production identity/project remains an eventual option after compatibility review.
 - Reuse auth patterns, but use separate household/goal/event records for concurrent shared activity. Avoid whole-household snapshot overwrites.
 - No secret values were copied or recorded. Do not expose server keys in browser variables.
+- On September 9 the selected `raidfgiukctxxmahnuzs` project was restored and audited. It is the older Weight Loss Competition backend, is separate from Life Dashboard, and already contains Auth users plus one two-member group. Production/local/preview Auth redirects are configured. Its legacy group and invite tables should be preserved; see `SUPABASE_STAGING_AUDIT.md`.
+- The old unused-invite policy exposes unused codes, and the old membership policies allow direct join and self-role changes. The additive proposal closes those paths and replaces create/join with atomic RPCs. It passes 20 pgTAP checks, a simultaneous two-client invite race, local database lint, 31 application tests, and the production build. No remote database change has been applied.
+- Applying it intentionally retires the legacy client's direct group/join/role/invite write paths. Confirm that old client write compatibility is no longer needed before applying it.
 
 ## Next concrete milestone
 
-First finish and review the current local integration, then prepare a real-phone staging beta where a visit from one account is discoverable by the other after reopening.
+The review-ready database proposal is the current checkpoint. After approval and remote application, connect the UI to it and prepare a real-phone beta where a visit from one account is discoverable by the other after reopening.
 
-1. Run final application tests/build and review the Home/Today/Me/room browser flow.
-2. Commit the local integration, push it, and update the existing Vercel project only when the new build is ready to replace the old one.
-3. Inspect the actual remote project/configuration read-only; identify staging availability and schema gaps. Local audit alone does not prove those exist remotely.
-4. Continue the implemented personal-auth flow with household creation/invitations, locally tested migrations, per-record persistence, scoped live updates, and reconnect refresh.
-5. Reuse authoritative completion/reward/prank operations with stable event IDs. Define note edit conflicts and explicit reward corrections.
+1. Obtain the schema-owner approval required by `SCHEMA_RLS_PLAN.md`, then apply `supabase/proposals/20260909_household_onboarding.sql` to the selected project.
+2. Rerun remote advisors and verify that both existing household members retain access.
+3. Build onboarding UI for create household, join by invite, display name/avatar, annoyance level, and initial door customization.
+4. Replace browser-local board/room writes with per-record persistence, scoped live updates, and reconnect refresh.
+5. Verify two-account phone/desktop delivery, reopened surprise discovery, retry safety, sign-out cleanup, and failed-save recovery.
 6. Add app-owned shared plans and the mobile agenda. Then add per-user Google OAuth, selected calendars, busy-detail privacy, and explicit export.
-7. Prepare Vercel environment mapping, auth redirects, access controls, and a two-account test script. Respect existing schema-review requirements.
-8. Verify phone/desktop sync, reopened surprise discovery, calendar time zones/privacy, retry safety, sign-out cleanup, and failed-save recovery.
 
 Then: household scaling → first native room widget → Me goals/boxing quest → decoration/collection → earned shop → paid cosmetics and neighbourhood exploration after validation. The full roadmap governs sequencing and open decisions.
 

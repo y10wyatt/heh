@@ -143,3 +143,25 @@ No remote database migration or Google Calendar authorization was performed. Sha
 - Pushed commit `05b9cb6` to GitHub `main`; Vercel deployed it successfully and assigned the production alias. Browser verification confirmed that production reads the existing Supabase variables and shows both account modes without console errors.
 
 No remote database migration was applied. Supabase redirect allow-list verification requires an owner dashboard session. Newly created accounts still require household membership; self-service household creation/invitations and shared-data sync are the next slice.
+
+## 2026-09-09 — selected Supabase project and onboarding audit
+
+- Selected and restored project `raidfgiukctxxmahnuzs` (Weight Loss Competition). Confirmed it is separate from Life Dashboard and already contains 10 Auth users, one group, two memberships, five invites, and three profiles.
+- Configured the Auth Site URL/redirect allow-list for the production app, local port 5173, and Vercel previews.
+- Pointed the ignored local environment at the selected project and added explicit browser-safe `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` configuration to Vercel for Production, Preview, and Development. Existing deployments have not been redeployed against the new variables yet.
+- Audited the legacy household schema and RLS read-only. Found that the unused-invite SELECT policy exposes every unused code to authenticated users.
+- Added `docs/SUPABASE_STAGING_AUDIT.md` and a review-only additive onboarding proposal that preserves current accounts/groups, hardens invitations, adds atomic create/join operations, preferences, member rooms, and five persistent action types.
+
+No remote database table, policy, function, or row was changed. Next: reproduce the legacy schema locally, add RLS/concurrency tests, and obtain the approval required by `SCHEMA_RLS_PLAN.md` before applying the proposal.
+
+## 2026-09-09 — household proposal verification
+
+- Recreated the audited legacy household tables, grants, and policies in local Supabase and made the additive proposal safe to rerun.
+- Found and closed two additional legacy bypasses in the proposal: direct self-joining of a known group and self-promotion through membership updates. Household create/join now uses only the authenticated RPC path.
+- Added coverage for signed-out access, group/membership mutation denial, owner creation and retry, private invite visibility, sibling join and retry, room creation, persistent notes, duplicate action IDs, annoyance preferences, and member counts.
+- Added a real two-client race test. Simultaneous claims of one invite create exactly one sibling membership and consume the invite once.
+- Ran the remote Supabase security/performance advisors read-only and recorded their pre-migration baseline in `SUPABASE_STAGING_AUDIT.md`.
+
+Validation: all 20 pgTAP assertions passed, the simultaneous invite race passed, Supabase local database lint found no schema errors, all 31 application tests passed, and the production build succeeded.
+
+No remote database table, policy, function, or row changed. The proposal is ready for owner review; `SCHEMA_RLS_PLAN.md` still requires explicit approval before remote application.

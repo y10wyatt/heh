@@ -23,3 +23,9 @@ Local review evidence:
 - 19 application tests and a successful production build.
 
 Review blocker: explicit owner approval is required before this proposal is applied to the shared remote Supabase project.
+
+## September 9 remote compatibility update
+
+The selected project already has a legacy household and fitness schema. Do not apply the original `202606290001_sibling_showdown_proposal.sql` remotely because it would create a parallel group model and conflicts with the existing `profiles` table. See `SUPABASE_STAGING_AUDIT.md` and the additive review artifact at `supabase/proposals/20260909_household_onboarding.sql`.
+
+The additive proposal now passes 20 legacy-compatibility pgTAP checks, a simultaneous two-client invite claim, and Supabase local database lint. It also closes legacy direct-join, role-promotion, and unused-invite enumeration paths. This evidence does not remove the explicit approval blocker above.
