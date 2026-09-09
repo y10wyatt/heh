@@ -116,7 +116,7 @@ Browser QA note: generic automation scrolling moved the outer `.device-screen` a
 
 ## Supabase/Vercel findings
 
-- Life Dashboard has Supabase magic-link/password auth and per-user `dashboard_snapshots` JSON storage. No Realtime subscriptions were found in the inspected source.
+- Life Dashboard has Supabase magic-link/password auth and per-user `dashboard_snapshots` JSON storage. Our Place now implements the same three account entry methods while retaining its own repositories and tables. No Realtime subscriptions were found in the inspected Life Dashboard source.
 - Its local Vercel project link does not verify deployment health or remote environment values.
 - Its `docs/STAGING.md` calls for a separate staging Supabase project and a separate Vercel project or staging-configured preview.
 - Recommend a separate Our Place Vercel project and staging database for the beta. Reusing Life Dashboard's production identity/project remains an eventual option after compatibility review.
@@ -130,7 +130,7 @@ First finish and review the current local integration, then prepare a real-phone
 1. Run final application tests/build and review the Home/Today/Me/room browser flow.
 2. Commit the local integration, push it, and update the existing Vercel project only when the new build is ready to replace the old one.
 3. Inspect the actual remote project/configuration read-only; identify staging availability and schema gaps. Local audit alone does not prove those exist remotely.
-4. Prepare auth/household flow, locally tested migrations, per-record persistence, scoped live updates, and reconnect refresh.
+4. Continue the implemented personal-auth flow with household creation/invitations, locally tested migrations, per-record persistence, scoped live updates, and reconnect refresh.
 5. Reuse authoritative completion/reward/prank operations with stable event IDs. Define note edit conflicts and explicit reward corrections.
 6. Add app-owned shared plans and the mobile agenda. Then add per-user Google OAuth, selected calendars, busy-detail privacy, and explicit export.
 7. Prepare Vercel environment mapping, auth redirects, access controls, and a two-account test script. Respect existing schema-review requirements.

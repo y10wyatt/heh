@@ -131,3 +131,14 @@ No Google authorization or remote database change was performed in this slice.
 - Browser-verified the production alias opens the new Our Place hallway, board, Home/Today/Me navigation, and contains no console errors on initial load.
 
 No remote database migration or Google Calendar authorization was performed. Shared-board notes, door seen-state, tidy display state, and task drafts remain browser-local.
+
+## 2026-09-08 — personal account entry
+
+- Reused the Life Dashboard Supabase Auth pattern for personal email/password accounts, existing-account sign-in, and magic-link sign-in.
+- Added a dedicated Our Place account screen with confirmation feedback, eight-character signup validation, persistent Supabase sessions, and local-scope sign-out.
+- Kept account identity shared at the Supabase Auth layer while preserving separate application tables and repository boundaries.
+- Added compatibility for current publishable keys, the Life Dashboard's legacy browser-key variable name, and the existing Vercel project's `NEXT_PUBLIC_` variable names.
+- Copied the Life Dashboard's browser-safe Supabase configuration into the ignored local environment file for local testing. No credential was committed or printed.
+- Added focused validation coverage. Nine test files with 31 tests pass, the production build passes, and the account-mode browser check reports no console errors.
+
+No remote database migration was applied. Newly created accounts still require household membership; self-service household creation/invitations and shared-data sync are the next slice.

@@ -7,6 +7,8 @@ type AuthState={
   loading:boolean;
   user:User|null;
   signIn(email:string,password:string):Promise<void>;
+  signUp(email:string,password:string):Promise<{needsEmailConfirmation:boolean}>;
+  sendMagicLink(email:string):Promise<void>;
   signOut():Promise<void>;
 };
 
@@ -35,10 +37,32 @@ export function AuthProvider({children}:PropsWithChildren){
     user,
     async signIn(email,password){
       if(!supabase)throw new Error("Supabase is not configured");
-      const {error}=await supabase.auth.signInWithPassword({email,password});
+      const {error}=await supabase.auth.signInWithPassword({email:email.trim(),password});
       if(error)throw error;
     },
-    async signOut(){if(supabase)await supabase.auth.signOut()},
+    async signUp(email,password){
+      if(!supabase)throw new Error("Supabase is not configured");
+      const {data,error}=await supabase.auth.signUp({
+        email:email.trim(),
+        password,
+        options:{emailRedirectTo:window.location.origin},
+      });
+      if(error)throw error;
+      return {needsEmailConfirmation:!data.session};
+    },
+    async sendMagicLink(email){
+      if(!supabase)throw new Error("Supabase is not configured");
+      const {error}=await supabase.auth.signInWithOtp({
+        email:email.trim(),
+        options:{emailRedirectTo:window.location.origin},
+      });
+      if(error)throw error;
+    },
+    async signOut(){
+      if(!supabase)return;
+      const {error}=await supabase.auth.signOut({scope:"local"});
+      if(error)throw error;
+    },
   }),[loading,user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

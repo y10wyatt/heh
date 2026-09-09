@@ -14,7 +14,11 @@ Without environment variables, the app runs with isolated data from `src/dev/see
 
 The current primary routes are Home (`/`), Today (`/today`), Me (`/me`), and personal rooms (`/house/rooms/:roomId`). Shared Calendar is planned as a Home subpage after account/household sync; Google Calendar is not connected yet.
 
-When Supabase variables are present, the app requires a real Supabase Auth session. It discovers the signed-in user's challenge group, loads events and active rules through RLS-protected repositories, and records Quick Log actions as that authenticated user.
+When Supabase variables are present, the app requires a personal Supabase Auth account. People can create an email/password account, sign in, or request a magic link. It discovers the signed-in user's challenge group, loads events and active rules through RLS-protected repositories, and records Quick Log actions as that authenticated user.
+
+For local development, the client accepts the current `VITE_SUPABASE_PUBLISHABLE_KEY` and the Life Dashboard's legacy `VITE_SUPABASE_ANON_KEY` name. The deployed Vite build also accepts the existing Vercel project's `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` names. These are browser-safe client keys; a secret or `service_role` key must never be used here.
+
+Using the same Supabase project gives Life Dashboard and Our Place the same account identity and session provider. Their application data stays in separate tables and repository boundaries. A newly confirmed account still needs household membership before it can load shared activity; self-service household creation and invitations are the next account milestone.
 
 ## Architecture
 
