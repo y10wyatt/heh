@@ -1,6 +1,6 @@
 # Our Place: current status and next steps
 
-Updated September 8, 2026. The approved sibling-home experience is integrated into the main app and live at `https://sibling-showdown.vercel.app`. Personal account creation, password sign-in, and magic-link sign-in are implemented locally using the Life Dashboard Supabase Auth pattern. Shared-board/door-seen state remains browser-local until the household-sync milestone.
+Updated September 8, 2026. The approved sibling-home experience and personal account entry are live at `https://sibling-showdown.vercel.app`. Account creation, password sign-in, and magic-link sign-in use the Life Dashboard Supabase Auth pattern. Shared-board/door-seen state remains browser-local until the household-sync milestone.
 
 ## Product direction
 

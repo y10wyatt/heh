@@ -140,5 +140,6 @@ No remote database migration or Google Calendar authorization was performed. Sha
 - Added compatibility for current publishable keys, the Life Dashboard's legacy browser-key variable name, and the existing Vercel project's `NEXT_PUBLIC_` variable names.
 - Copied the Life Dashboard's browser-safe Supabase configuration into the ignored local environment file for local testing. No credential was committed or printed.
 - Added focused validation coverage. Nine test files with 31 tests pass, the production build passes, and the account-mode browser check reports no console errors.
+- Pushed commit `05b9cb6` to GitHub `main`; Vercel deployed it successfully and assigned the production alias. Browser verification confirmed that production reads the existing Supabase variables and shows both account modes without console errors.
 
-No remote database migration was applied. Newly created accounts still require household membership; self-service household creation/invitations and shared-data sync are the next slice.
+No remote database migration was applied. Supabase redirect allow-list verification requires an owner dashboard session. Newly created accounts still require household membership; self-service household creation/invitations and shared-data sync are the next slice.

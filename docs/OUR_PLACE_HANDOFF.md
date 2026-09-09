@@ -117,6 +117,7 @@ Browser QA note: generic automation scrolling moved the outer `.device-screen` a
 ## Supabase/Vercel findings
 
 - Life Dashboard has Supabase magic-link/password auth and per-user `dashboard_snapshots` JSON storage. Our Place now implements the same three account entry methods while retaining its own repositories and tables. No Realtime subscriptions were found in the inspected Life Dashboard source.
+- The account entry screen is live in production and reads the existing Vercel project's browser-safe Supabase variables. Supabase's production Site URL/redirect allow-list still needs owner login verification before relying on confirmation or magic-link return paths.
 - Its local Vercel project link does not verify deployment health or remote environment values.
 - Its `docs/STAGING.md` calls for a separate staging Supabase project and a separate Vercel project or staging-configured preview.
 - Recommend a separate Our Place Vercel project and staging database for the beta. Reusing Life Dashboard's production identity/project remains an eventual option after compatibility review.
