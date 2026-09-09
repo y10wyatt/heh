@@ -121,4 +121,13 @@ Documentation-only change. Preview, application code, remote data, and deploymen
 
 Verification: 8 test files and 29 tests passed; the production TypeScript/Vite build passed. Browser behavior checks covered room discovery/tidy, board-note creation, Today goal creation/completion, point and weekly updates, and Me navigation. Home and room also passed 426×932 source/implementation visual comparison; see `design-qa.md`.
 
-No Google authorization, remote database change, commit, push, or Vercel deployment was performed in this slice.
+No Google authorization or remote database change was performed in this slice.
+
+## 2026-09-08 — GitHub and Vercel production release
+
+- Pushed the integrated Our Place application to GitHub `main` in commit `fc51891`.
+- Vercel's first clean build exposed missing ignored files from the locally vendored Radix icon package. Added its runtime and TypeScript declarations in commit `a3261c9`; the same production build then completed successfully.
+- Vercel marked `a3261c9` Ready in Production and assigned the existing `sibling-showdown.vercel.app` domain.
+- Browser-verified the production alias opens the new Our Place hallway, board, Home/Today/Me navigation, and contains no console errors on initial load.
+
+No remote database migration or Google Calendar authorization was performed. Shared-board notes, door seen-state, tidy display state, and task drafts remain browser-local.

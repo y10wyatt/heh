@@ -1,6 +1,6 @@
 # Our Place: current status and next steps
 
-Updated September 8, 2026. The approved sibling-home experience is now integrated into the local main app. The changes are not yet committed, pushed, or deployed, and shared-board/door-seen state remains browser-local until the account-sync milestone.
+Updated September 8, 2026. The approved sibling-home experience is integrated into the main app and live at `https://sibling-showdown.vercel.app`. Shared-board/door-seen state remains browser-local until the account-sync milestone.
 
 ## Product direction
 

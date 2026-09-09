@@ -4,7 +4,7 @@ Updated September 8, 2026.
 
 ## Current main-app state
 
-The selected Our Place direction has been integrated into the local main application on `master`, after pushed commit `148b0c1`. The working tree contains the new Home, Today, Me, and room experience plus supporting task/domain fixes. It has not yet been committed, pushed, or deployed to the existing `sibling-showdown` Vercel project.
+The selected Our Place direction is integrated into the main application and deployed to `https://sibling-showdown.vercel.app`. Integration commit `fc51891` added Home, Today, Me, rooms, and supporting task/domain fixes. Follow-up commit `a3261c9` included the vendored icon runtime and declarations required by Vercel's clean build.
 
 Main routes now are:
 
@@ -25,7 +25,7 @@ No calendar UI, Google OAuth grant, remote schema, or sync job has been implemen
 
 ## Current state
 
-The approved prototype has been translated into the main application and passed its local code and mobile visual checks. The next release action is to commit/push this local baseline and replace the old Vercel UI build, followed by staging account/household sync. Do not describe browser-local board, task, room-seen, or tidy state as live-synced or production-ready.
+The approved prototype has been translated into the main application, passed its local code/mobile visual checks, and replaced the old Vercel UI. The next milestone is staging account/household sync. Do not describe browser-local board, task, room-seen, or tidy state as live-synced or production-ready.
 
 ## Three separate locations
 
