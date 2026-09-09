@@ -1,6 +1,6 @@
 # Our Place: current status and next steps
 
-Updated September 5, 2026. This roadmap covers the sibling-home design prototype in `artifacts/our-place-prototype`, not a claim that its features are deployed in the main app.
+Updated September 8, 2026. The approved sibling-home experience is now integrated into the local main app. The changes are not yet committed, pushed, or deployed, and shared-board/door-seen state remains browser-local until the account-sync milestone.
 
 ## Product direction
 
@@ -14,6 +14,37 @@ North star: **A tiny shared home that quietly continues existing while both sibl
 - Future art: simple line art and reusable objects. Door decoration first, fixed room decoration slots next. Keep owner decor separate from temporary visitor effects.
 - Widgets are a core relationship surface: make a sibling's visits, surprises, and notes visible outside the app. Prioritize asynchronous presence over goal statistics or an always-online indicator.
 - Household growth: extend the hallway horizontally for more family members while retaining the shared board. A future neighbourhood can connect separate close circles; do not merge all friends into one household by default.
+- Shared calendar: enter through Home as part of living together. Mobile starts with an agenda and quick plan capture; the companion website can later offer detailed week/month planning.
+
+## Shared calendar direction
+
+Calendar belongs inside **Home**, close to the shared board and meetup plans. Keep Today, Home, and Me as the three primary tabs: Today is personal action, Home is shared life, and Me is planning/customization. Add a `Next together` card on Home that opens `Our calendar`.
+
+Start with an app-owned shared calendar rather than making Google Calendar the database:
+
+- Shared plans are household records with a stable ID, title, start/end, time zone, all-day flag, location, notes, creator, participants, status, visibility, and timestamps.
+- Mobile defaults to an agenda for Today and This week, with fast add/edit and an optional meetup countdown. The website can add week/month views and deeper trip or project notes.
+- Personal schedule overlays are private by default. A sibling sees `Busy` unless the owner explicitly shares an event title/details or creates it as a household plan.
+- Each person connects Google independently through OAuth and chooses which calendars participate. Start with Calendar List read-only plus the free/busy scope so schedule overlays expose time ranges without event details.
+- First write slice: create a dedicated `Our Place` secondary Google calendar and use the narrower app-created-calendar scope where it meets the product need. Writing into arbitrary existing calendars requires a broader event scope and should be a later, explicit opt-in.
+- Add full event-detail import or two-way editing only after mapping, conflict handling, deletion, recurrence, and retry behavior are proven.
+- Store the provider, external event ID, sync token/version, and last sync result separately from the household event. Google incremental sync begins with a full sync, persists the returned sync token, includes deleted entries, and must restart with a full sync when Google invalidates a token. This keeps the shared plan usable if Google is disconnected and prevents sync loops.
+
+Acceptance for the first shared-calendar slice: two accounts can create and update one household plan, both devices receive it after reconnect, time zones render correctly, a private Google event exposes only the chosen visibility, and retries do not duplicate either record.
+
+Implementation order: account/household sync → internal shared plans and agenda → Google OAuth/calendar selection → private busy overlays and explicit export → two-account privacy/retry testing → richer website views → carefully scoped two-way sync.
+
+Google Calendar integration is planned, not implemented or authorized remotely by this document.
+
+## Integrated in the local main app — September 8
+
+- Approved Home hallway, persistent ajar/closed visit cue, enterable rooms, room surprise/tidy state, and shared sticky-note board.
+- Today categories (Body, Mind, Joy, Everyday), weekly progress, goal capture, starring, and append-only completion through the existing task/action service boundaries.
+- Me as the planning/customization hub with current metrics, collection/navigation links, and a boxing-quest preview.
+- One stable task ID now flows through task preparation and completion; legacy browser evidence can be recovered without awarding duplicate points.
+- New visual assets and scoped styles live in the main app. The separate prototype remains reference/history rather than the runtime entry point.
+
+Still local-only: board notes, door seen-state, room tidy display state, and personal task drafts. Existing repository/use-case boundaries are ready for the staging persistence pass; no Google Calendar connection or calendar page exists yet.
 
 ## Completed in the local prototype
 
@@ -29,14 +60,15 @@ North star: **A tiny shared home that quietly continues existing while both sibl
 
 ## Next steps, in order
 
-1. **Finish the Today review and prepare a real-phone web beta.** Confirm grouping, weekly action-count targets, and completion/undo. Separate the simulated phone frame/keyboard from the deployed phone experience. Keep Home's approved content hierarchy.
-2. **Deliver shared accounts and sync on staging.** Reuse existing authentication, repository, and atomic-action code where appropriate. Add household membership, per-record persistence, scoped live updates, and reconnect refresh. Use an Our Place Vercel project with staging Supabase. Test two-account delivery, duplicate-safe rewards, and private data. Reconcile prototype undo with the main app's append-only scoring through an explicit reversal operation. See the local Life Dashboard audit below.
-3. **Validate persistent interaction and expandable households.** Visit → leave something → discover → react → tidy or keep a memory. Start the next interaction slice with a note, pillow prank, and gift; retain the existing duck example. Add quiet preferences, a small active-prank limit, and a memory archive/display distinction. Design membership for multiple people, then extend the hallway with horizontal paging and a household-wide board. Start interaction testing with 2–6 members; this is a test range, not a permanent product limit.
-4. **Test the first native widget early.** Once shared state is reliable, build a room widget showing the latest unseen surprise/note and opening the corresponding room. Validate on real devices in a mobile beta before promising direct widget actions or refresh timing. Do this before a large decoration catalog or paid shop.
-5. **Build Me planning and one quest.** Long-term goal → milestone → linked Today action; one selectable boxing quest and earned gloves. Add optional private metrics (name, unit/rating, dated entries, history), then expand after review. Move sibling switching/reset into clearly separate demo controls.
-6. **Personalize and validate the economy.** One canonical modular avatar, a small wardrobe, door customization, and fixed room decoration slots. Keep ownership, equipped layout, and visitor effects separate. Add a small earned-item shop before considering paid cosmetics. Use the reduced art MVP below.
-7. **Expand proven surfaces.** Introduce one shared pet per household after the core loop is useful; trial cosmetic pet monetization later. Expand widgets, notifications, and shared-board links into deeper Life Dashboard projects. Mobile emphasizes capture; website supports detailed planning and notes.
-8. **Explore neighbourhoods later.** Prototype visiting another household only after one household feels coherent. Multiple memberships, guest access, friendship, and zoom-out navigation remain design decisions to validate.
+1. **Publish the integrated local baseline.** Review the current Home, Today, Me, and room build; commit and push it; then replace the old Vercel build through the existing project. Keep the database unchanged during this UI deployment.
+2. **Deliver shared accounts and sync on staging.** Reuse existing authentication, repository, and atomic-action code where appropriate. Add household membership, per-record persistence, scoped live updates, and reconnect refresh. Use staging Supabase configuration. Test two-account delivery, duplicate-safe rewards, and private data.
+3. **Add Our calendar.** Build app-owned household plans and the mobile agenda after shared sync works. Then connect Google Calendar per user with calendar selection, private busy overlays, and explicit export. Complete the privacy/time-zone/retry acceptance checks before richer two-way sync.
+4. **Validate persistent interaction and expandable households.** Visit → leave something → discover → react → tidy or keep a memory. Start the next interaction slice with a note, pillow prank, and gift; retain the existing duck example. Add quiet preferences, a small active-prank limit, and a memory archive/display distinction. Design membership for multiple people, then extend the hallway with horizontal paging and a household-wide board. Start interaction testing with 2–6 members; this is a test range, not a permanent product limit.
+5. **Test the first native widget early.** Once shared state is reliable, build a room widget showing the latest unseen surprise/note and opening the corresponding room. Validate on real devices in a mobile beta before promising direct widget actions or refresh timing. Do this before a large decoration catalog or paid shop.
+6. **Build Me planning and one quest.** Long-term goal → milestone → linked Today action; one selectable boxing quest and earned gloves. Add optional private metrics (name, unit/rating, dated entries, history), then expand after review. Move sibling switching/reset into clearly separate demo controls.
+7. **Personalize and validate the economy.** One canonical modular avatar, a small wardrobe, door customization, and fixed room decoration slots. Keep ownership, equipped layout, and visitor effects separate. Add a small earned-item shop before considering paid cosmetics. Use the reduced art MVP below.
+8. **Expand proven surfaces.** Introduce one shared pet per household after the core loop is useful; trial cosmetic pet monetization later. Expand widgets, notifications, calendar, and shared-board links into deeper Life Dashboard projects. Mobile emphasizes capture; website supports detailed planning and notes.
+9. **Explore neighbourhoods later.** Prototype visiting another household only after one household feels coherent. Multiple memberships, guest access, friendship, and zoom-out navigation remain design decisions to validate.
 
 ## Widgets: presence outside the app
 

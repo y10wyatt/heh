@@ -1,6 +1,6 @@
 # Sibling Showdown
 
-For the current Our Place prototype and restart instructions, read [Our Place handoff](docs/OUR_PLACE_HANDOFF.md). Product direction is tracked in the [roadmap](docs/OUR_PLACE_ROADMAP.md); implementation history is in the [development log](docs/DEVELOPMENT_LOG.md).
+For the current Our Place integration and restart instructions, read [Our Place handoff](docs/OUR_PLACE_HANDOFF.md). Product direction is tracked in the [roadmap](docs/OUR_PLACE_ROADMAP.md); implementation history is in the [development log](docs/DEVELOPMENT_LOG.md).
 
 Mobile-first React/Vite MVP for two-person accountability and playful room interactions. It shares a Supabase project with Life Dashboard while keeping its own tables and business logic.
 
@@ -12,6 +12,8 @@ Mobile-first React/Vite MVP for two-person accountability and playful room inter
 
 Without environment variables, the app runs with isolated data from `src/dev/seed.ts`.
 
+The current primary routes are Home (`/`), Today (`/today`), Me (`/me`), and personal rooms (`/house/rooms/:roomId`). Shared Calendar is planned as a Home subpage after account/household sync; Google Calendar is not connected yet.
+
 When Supabase variables are present, the app requires a real Supabase Auth session. It discovers the signed-in user's challenge group, loads events and active rules through RLS-protected repositories, and records Quick Log actions as that authenticated user.
 
 ## Architecture
@@ -20,7 +22,7 @@ When Supabase variables are present, the app requires a real Supabase Auth sessi
 - `src/infrastructure`: replaceable in-memory and Supabase adapters.
 - `src/features`: feature-owned application UI and screen composition.
 - `src/config/ui-content.ts`: editable labels, descriptions, options, and navigation.
-- `src/config/visual-assets.ts`: the single replacement point for mascots, avatars, room art, and decorative imagery.
+- `src/config/visual-assets.ts`: legacy screen artwork mapping. The new Our Place artwork mapping is kept with its feature in `src/features/our-place/OurPlaceComponents.tsx`.
 - `src/dev`: development-only data; production components contain no embedded mock records.
 - `supabase/migrations`: a local schema/RLS proposal. It has **not** been applied remotely.
 

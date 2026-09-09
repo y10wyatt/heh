@@ -2,7 +2,7 @@ import {createContext,useCallback,useContext,useEffect,useMemo,useState,type Pro
 import type {DailyResult} from "../domain/models/core";
 import type {Room,RoomAction,RoomActionEntitlement,RoomItem,RoomSlot} from "../domain/models/rooms";
 import type {ApplyRoomActionInput,DailyResultRepository,RoomActionRepository,RoomEntitlementRepository,RoomItemRepository,RoomRepository} from "../domain/repositories";
-import {entitlements as seedEntitlements,roomItems as seedItems,rooms as seedRooms,slots as seedSlots,users} from "../dev/seed";
+import {entitlements as seedEntitlements,roomActions as seedRoomActions,roomItems as seedItems,rooms as seedRooms,slots as seedSlots,users} from "../dev/seed";
 import {ApplyRoomAction} from "../features/rooms/apply-room-action";
 import {FinalizeDay} from "../features/scoreboard/finalize-day";
 import {useAuth} from "../features/auth/AuthProvider";
@@ -14,7 +14,7 @@ type Dependencies={rooms:RoomRepository;actions:RoomActionRepository;entitlement
 const demoEntitlements=new InMemoryRoomEntitlementRepository([...seedEntitlements]);
 const demoDependencies:Dependencies={
   rooms:new InMemoryRoomRepository(seedRooms,seedSlots),
-  actions:new InMemoryRoomActionRepository(users.william,seedRooms[0].challengeGroupId),
+  actions:new InMemoryRoomActionRepository(users.william,seedRooms[0].challengeGroupId,[...seedRoomActions]),
   entitlements:demoEntitlements,
   items:new InMemoryRoomItemRepository(seedItems),
   results:new InMemoryDailyResultRepository(),

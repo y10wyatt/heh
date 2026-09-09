@@ -1,6 +1,6 @@
 import type {ActionEvent} from "../domain/models/action-event";
 import type {PointRule} from "../domain/models/core";
-import type {Room,RoomActionEntitlement,RoomItem,RoomSlot} from "../domain/models/rooms";
+import type {Room,RoomAction,RoomActionEntitlement,RoomItem,RoomSlot} from "../domain/models/rooms";
 export const users={william:"00000000-0000-4000-8000-000000000001",sister:"00000000-0000-4000-8000-000000000002"};
 export const groupId="00000000-0000-4000-8000-000000000010";
 const now=new Date().toISOString();
@@ -23,6 +23,9 @@ export const roomItems:RoomItem[]=[
  {id:"item-confetti",name:"Confetti",itemType:"mess",rarity:"common",effectType:"temporary",metadata:{}},
  {id:"item-poster",name:"Funny poster",itemType:"poster",rarity:"common",effectType:"visual",metadata:{}},
  {id:"item-light",name:"Warm lighting",itemType:"lighting",rarity:"common",effectType:"visual",metadata:{}},
+];
+export const roomActions:RoomAction[]=[
+ {id:"room-action-ducks",actorId:users.sister,targetRoomId:"room-w",challengeGroupId:groupId,actionType:"prank",slotId:"slot-4",itemId:"item-confetti",result:"applied",createdAt:now,metadata:{summary:"Sister left a ridiculous surprise."}},
 ];
 export const entitlements:RoomActionEntitlement[]=[
  {id:"entitlement-mischief",challengeGroupId:groupId,userId:users.william,targetUserId:users.sister,entitlementType:"mischief",sourceDate:now.slice(0,10),createdAt:now},

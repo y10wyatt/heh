@@ -30,7 +30,7 @@ describe("persistent task capture",()=>{
     const {storage,service}=setup();
     const task=service.add("  Read a chapter  ");
     service.star(task.id);
-    expect(setup(storage).service.list()).toMatchObject([{id:task.id,title:"Read a chapter",starred:true}]);
+    expect(setup(storage).service.list()).toMatchObject([{id:task.id,title:"Read a chapter",category:"mind",starred:true}]);
     expect(new LocalTaskRepository(storage,{...actor,userId:"other"}).list()).toEqual([]);
     expect(new LocalTaskRepository(storage,{...actor,groupId:"other"}).list()).toEqual([]);
     expect(new LocalTaskRepository(storage,{...actor,mode:"connected"}).list()).toEqual([]);
@@ -45,7 +45,7 @@ describe("persistent task capture",()=>{
     await service.complete(task.id);
     const evidence=await events.list(actor.groupId);
     expect(evidence).toHaveLength(1);
-    expect(evidence[0]).toMatchObject({id:task.id,externalReference:{type:"sibling_showdown_task",id:task.id}});
+    expect(evidence[0]).toMatchObject({id:task.id,category:"body",externalReference:{type:"sibling_showdown_task",id:task.id}});
     expect(new ScoringService().totals(evidence,[{id:"rule",groupId:actor.groupId,version:1,actionType:"action_completed",points:3,active:true}])).toEqual({"user-1":3});
   });
 
@@ -94,6 +94,14 @@ describe("persistent task capture",()=>{
     storage.setItem(key,"null");
     expect(()=>tasks.get(task.id)).toThrow("Saved task could not be read");
     expect(storage.getItem(key)).toBe("null");
+  });
+
+  it("restores completion evidence created before task IDs were forwarded",()=>{
+    const {tasks,service,log}=setup();
+    const task=service.add("Read together");
+    const completion={...log.prepare({actionType:"action_completed",category:"mind",title:"Completed Read together"}),externalReference:{type:"sibling_showdown_task",id:task.id}};
+    tasks.save({...task,completion});
+    expect(tasks.get(task.id)?.completion).toEqual(completion);
   });
 });
 

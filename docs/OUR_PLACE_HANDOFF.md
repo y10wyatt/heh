@@ -1,12 +1,31 @@
 # Our Place handoff
 
-Last updated: September 5, 2026. Start here when continuing in another session.
+Updated September 8, 2026.
+
+## Current main-app state
+
+The selected Our Place direction has been integrated into the local main application on `master`, after pushed commit `148b0c1`. The working tree contains the new Home, Today, Me, and room experience plus supporting task/domain fixes. It has not yet been committed, pushed, or deployed to the existing `sibling-showdown` Vercel project.
+
+Main routes now are:
+
+- `/` — shared hallway and board
+- `/today` — categorized personal actions and weekly progress
+- `/me` — planning, tracking, collection, and quest entry points
+- `/house/rooms/:roomId` — personal rooms and persistent visit discovery
+
+Browser-local for this slice: shared-board notes, door seen-state, tidy display state, and task drafts. Action completion and room actions continue through the existing service/repository boundaries. A provider bug that discarded prepared task IDs was fixed, with legacy completion recovery that avoids duplicate rewards.
+
+## Calendar decision — September 8
+
+Add `Our calendar` inside Home instead of adding a fourth bottom tab. Home should surface `Next together`; opening it shows a mobile agenda with shared plans first. The detailed week/month planner belongs naturally in the future website/Life Dashboard connection.
+
+Build the internal household event model after shared account sync, then connect Google Calendar per user through OAuth. Personal calendar details remain private by default; siblings receive busy blocks unless the owner explicitly shares details. Begin with calendar-list read access and free/busy overlays. For writing, prefer a dedicated app-created `Our Place` Google calendar before asking for the broader scope needed to edit arbitrary calendars. Delay general two-way editing until recurrence, deletion, conflict, retry, invalid-sync-token recovery, and permission behavior have tests.
+
+No calendar UI, Google OAuth grant, remote schema, or sync job has been implemented yet. The full data/privacy sequence is in `OUR_PLACE_ROADMAP.md`.
 
 ## Current state
 
-The user approved an interactive sibling-home prototype and its newer Today screen is ready for review. Planning now prioritizes a shared staging web beta, then an early native room widget. There is no active code task left unfinished from the Today implementation.
-
-The current request only updated documentation. No Vercel deployment, new remote database migration, account provisioning, or native app build was performed. Do not describe the local prototype as live-synced or production-ready.
+The approved prototype has been translated into the main application and passed its local code and mobile visual checks. The next release action is to commit/push this local baseline and replace the old Vercel UI build, followed by staging account/household sync. Do not describe browser-local board, task, room-seen, or tidy state as live-synced or production-ready.
 
 ## Three separate locations
 
@@ -44,7 +63,22 @@ Both existing application repositories contained uncommitted work when inspected
 
 The model still hardcodes `william` and `sister`. The sibling switch is a simulation, not authentication. Local storage key: `our-place-interactive-preview-v1`. Different origins have separate data.
 
-## Resume the preview and checks
+## Run the integrated main app
+
+Run from the repository root:
+
+```powershell
+npm install
+npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
+npm run test
+npm run build
+```
+
+Preview: `http://127.0.0.1:5173/`.
+
+Last verified September 8: 8 test files and 29 tests passed; the production TypeScript/Vite build passed. Mobile Home and room captures at 426×932 passed visual comparison. Evidence is in the root `design-qa.md` and `qa/` directory.
+
+## Resume the reference prototype
 
 Run from the prototype directory with Node 24:
 
@@ -53,7 +87,7 @@ npm ci
 npm run dev -- --host 127.0.0.1 --port 5180 --strictPort
 ```
 
-Preview: `http://localhost:5180/`. The server/tab may not survive a session restart. Check the port before starting another instance. Opening the app starts on Home; select Today for the new screen.
+Reference preview: `http://localhost:5180/`. It is retained for historical behavior and design comparison; new runtime work belongs in the main application unless a deliberate prototype experiment is requested.
 
 ```powershell
 npm run build
@@ -91,14 +125,16 @@ Browser QA note: generic automation scrolling moved the outer `.device-screen` a
 
 ## Next concrete milestone
 
-Prepare a real-phone staging beta where a visit from one account is discoverable by the other after reopening.
+First finish and review the current local integration, then prepare a real-phone staging beta where a visit from one account is discoverable by the other after reopening.
 
-1. Confirm Today feedback and inspect current main-app/repository state.
-2. Inspect the actual remote project/configuration read-only; identify staging availability and schema gaps. Local audit alone does not prove those exist remotely.
-3. Prepare the real-phone entry, auth/household flow, locally tested migrations, per-record persistence, scoped live updates, and reconnect refresh.
-4. Reuse authoritative completion/reward/prank operations with stable event IDs. Define note edit conflicts and explicit reward corrections.
-5. Prepare Vercel configuration, staging environment mapping, auth redirects, access controls, and a two-account test script. Complete reviewable local work before any required remote approval step; respect existing schema-review requirements.
-6. Verify phone/desktop sync, reopened surprise discovery, retry safety, private-data isolation, sign-out cleanup, and failed-save recovery.
+1. Run final application tests/build and review the Home/Today/Me/room browser flow.
+2. Commit the local integration, push it, and update the existing Vercel project only when the new build is ready to replace the old one.
+3. Inspect the actual remote project/configuration read-only; identify staging availability and schema gaps. Local audit alone does not prove those exist remotely.
+4. Prepare auth/household flow, locally tested migrations, per-record persistence, scoped live updates, and reconnect refresh.
+5. Reuse authoritative completion/reward/prank operations with stable event IDs. Define note edit conflicts and explicit reward corrections.
+6. Add app-owned shared plans and the mobile agenda. Then add per-user Google OAuth, selected calendars, busy-detail privacy, and explicit export.
+7. Prepare Vercel environment mapping, auth redirects, access controls, and a two-account test script. Respect existing schema-review requirements.
+8. Verify phone/desktop sync, reopened surprise discovery, calendar time zones/privacy, retry safety, sign-out cleanup, and failed-save recovery.
 
 Then: household scaling → first native room widget → Me goals/boxing quest → decoration/collection → earned shop → paid cosmetics and neighbourhood exploration after validation. The full roadmap governs sequencing and open decisions.
 

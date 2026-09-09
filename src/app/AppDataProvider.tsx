@@ -32,7 +32,7 @@ export function AppDataProvider({children}:PropsWithChildren){
   const actionLog=useMemo(()=>new LogAction(dependencies.events,{userId:currentUserId,challengeGroupId:groupId}),[dependencies,currentUserId,groupId]);
 
   const capture=useMemo(()=>({
-    prepareAction:(input:LogActionInput)=>actionLog.prepare(input),
+    prepareAction:(input:LogActionInput,id?:string)=>actionLog.prepare(input,id),
     async saveAction(event:ActionEvent){
       if(!groupId)throw new Error("No challenge group is available");
       const saved=await actionLog.commit(event);

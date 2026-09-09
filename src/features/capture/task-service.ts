@@ -1,4 +1,4 @@
-import type {Task,TaskRepository} from "../../domain/models/task";
+import {inferTaskCategory,type Task,type TaskCategory,type TaskRepository} from "../../domain/models/task";
 import type {LogAction} from "./log-action";
 
 export class TaskService {
@@ -14,10 +14,10 @@ export class TaskService {
 
   list(){return this.tasks.list()}
 
-  add(title:string){
+  add(title:string,category?:TaskCategory){
     const trimmed=title.trim();
     if(!trimmed||trimmed.length>120)throw new Error("Use a task title between 1 and 120 characters");
-    const task:Task={id:this.createId(),...this.actor,title:trimmed,starred:false,createdAt:this.now().toISOString()};
+    const task:Task={id:this.createId(),...this.actor,title:trimmed,category:category??inferTaskCategory(trimmed),starred:false,createdAt:this.now().toISOString()};
     this.tasks.save(task);
     return task;
   }
@@ -41,7 +41,7 @@ export class TaskService {
     if(!task.completion){
       task={...task,completion:{
         // The task UUID identifies its one completion, including retries from another tab.
-        ...this.log.prepare({actionType:"action_completed",category:"task",title:`Completed ${task.title}`},task.id),
+        ...this.log.prepare({actionType:"action_completed",category:task.category,title:`Completed ${task.title}`},task.id),
         externalReference:{type:"sibling_showdown_task",id:task.id},
       }};
       // Save the evidence before sending; an uncertain response must reuse this payload.

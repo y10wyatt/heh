@@ -1,5 +1,5 @@
 import {isActionEvent} from "../../domain/models/action-event";
-import type {Task,TaskRepository} from "../../domain/models/task";
+import {inferTaskCategory,isTaskCategory,type Task,type TaskRepository} from "../../domain/models/task";
 
 export class LocalTaskRepository implements TaskRepository {
   private readonly prefix:string;
@@ -26,12 +26,13 @@ export class LocalTaskRepository implements TaskRepository {
   get(id:string):Task|undefined{
     const raw=this.storage.getItem(this.prefix+id);
     if(raw===null)return;
-    const task:Task=JSON.parse(raw);
+    const saved:Task=JSON.parse(raw);
+    const task={...saved,category:isTaskCategory(saved?.category)?saved.category:inferTaskCategory(saved?.title??"")};
     if(!task||task.id!==id||task.userId!==this.scope.userId||task.groupId!==this.scope.groupId||
-      typeof task.title!=="string"||!task.title.trim()||typeof task.starred!=="boolean"||
+      typeof task.title!=="string"||!task.title.trim()||!isTaskCategory(task.category)||typeof task.starred!=="boolean"||
       !Number.isFinite(Date.parse(task.createdAt))||
       (task.completedAt!==undefined&&!Number.isFinite(Date.parse(task.completedAt)))||
-      (task.completion!==undefined&&(!isActionEvent(task.completion)||task.completion.id!==task.id||
+      (task.completion!==undefined&&(!isActionEvent(task.completion)||(task.completion.id!==task.id&&task.completion.externalReference?.id!==task.id)||
         task.completion.userId!==task.userId||task.completion.challengeGroupId!==task.groupId||
         task.completion.actionType!=="action_completed"))||
       (task.completedAt!==undefined&&!task.completion)){

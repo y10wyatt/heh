@@ -108,3 +108,17 @@ Validation: reviewed documentation for consistent feature status and sequencing.
 - Updated roadmap, handoff, prototype README, and durable design instructions. All new systems are marked planned, not implemented.
 
 Documentation-only change. Preview, application code, remote data, and deployments unchanged. No tests rerun; prior implementation validation remains historical evidence.
+
+## 2026-09-08 — main-app Our Place integration and calendar direction
+
+- Integrated the approved hallway-first Home, shared board, personal rooms, Today categories/weekly progress, and Me planning/customization surface into the main React application.
+- Preserved the existing service and repository boundaries. Task completion still writes append-only action evidence and uses active scoring rules.
+- Fixed the application provider so a prepared task completion keeps its stable task ID. Added safe recovery for legacy browser evidence whose external task reference matches, preventing a second point award.
+- Added scoped Our Place styling, reusable view components, locally bundled fonts/icons, and generated visual assets. The main routes are now `/`, `/today`, `/me`, and `/house/rooms/:roomId`. Resized the art for its mobile display bounds, reducing the asset set from about 18.5 MB to 10.9 MB while retaining 2× phone sharpness where it matters.
+- Browser-verified room discovery/tidy, board-note creation, Today goal creation/completion with weekly and point updates, and Me navigation. Board notes, door seen-state, tidy display state, and task drafts remain browser-local.
+- Chose Calendar as a Home subpage rather than a fourth primary tab. Planned an app-owned household agenda, private-by-default personal overlays, and per-user Google Calendar OAuth with selected-calendar read/export before broader two-way sync.
+- Updated the roadmap and handoff with status, calendar privacy/model guidance, and the next staging sequence.
+
+Verification: 8 test files and 29 tests passed; the production TypeScript/Vite build passed. Browser behavior checks covered room discovery/tidy, board-note creation, Today goal creation/completion, point and weekly updates, and Me navigation. Home and room also passed 426×932 source/implementation visual comparison; see `design-qa.md`.
+
+No Google authorization, remote database change, commit, push, or Vercel deployment was performed in this slice.

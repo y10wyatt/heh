@@ -1,6 +1,6 @@
 import {useEffect,useMemo,useRef,useState} from "react";
 import {useAppData} from "../../app/AppDataProvider";
-import type {Task} from "../../domain/models/task";
+import type {Task,TaskCategory} from "../../domain/models/task";
 import {LocalTaskRepository} from "../../infrastructure/local/task-repository";
 import {useAuth} from "../auth/AuthProvider";
 import {TaskService} from "./task-service";
@@ -50,7 +50,7 @@ export function useTasks(){
   return {
     tasks:tasks.filter(task=>task.userId===currentUserId&&task.groupId===groupId),
     error:setup.error??error,saving,ready:!!setup.service,
-    add:(title:string)=>run(service=>service.add(title)),
+    add:(title:string,category?:TaskCategory)=>run(service=>service.add(title,category)),
     star:(id:string)=>run(service=>service.star(id)),
     complete:(id:string)=>run(service=>service.complete(id)),
   };
