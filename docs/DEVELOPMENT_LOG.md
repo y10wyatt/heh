@@ -185,3 +185,8 @@ Next: deploy this application integration, complete onboarding with the two exis
 - Updated handoff and roadmap checkpoints: next work is onboarding with both existing accounts, then persistent board/room actions and Realtime/reconnect refresh.
 
 Known limitation: connected Today completion still targets the legacy `action_events` path, which is absent from the selected backend. Keep that persistence slice separate from the approved household migration; do not re-enable direct legacy writes.
+
+## 2026-09-09 — temporary email-free auth testing
+
+- Disabled Supabase **Confirm email** for project `raidfgiukctxxmahnuzs` so private beta accounts can be created and used with email + password without waiting for SMTP delivery.
+- Verified the setting persisted after dashboard reload. Re-enable it before public launch, or configure a verified SMTP provider first.

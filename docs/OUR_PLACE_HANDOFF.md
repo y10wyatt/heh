@@ -132,6 +132,8 @@ Browser QA note: generic automation scrolling moved the outer `.device-screen` a
 
 The database foundation is applied and the onboarding-connected build is live at `https://sibling-showdown.vercel.app`. Current checkpoint: exercise onboarding with both existing accounts, then persist room actions and verify cross-device discovery.
 
+Temporary testing setting: Supabase **Confirm email** is currently disabled because the project has no custom SMTP provider. Password signup works without email delivery. Re-enable confirmation before public release or after configuring SMTP.
+
 1. Sign in with both existing accounts and complete onboarding; verify one settings row and room per member.
 2. Replace browser-local board/room writes with per-record persistence, scoped live updates, and reconnect refresh.
 3. Verify two-account phone/desktop delivery, reopened surprise discovery, retry safety, sign-out cleanup, and failed-save recovery.
