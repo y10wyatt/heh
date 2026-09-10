@@ -13,7 +13,7 @@ Main routes now are:
 - `/me` — planning, tracking, collection, and quest entry points
 - `/house/rooms/:roomId` — personal rooms and persistent visit discovery
 
-Household board notes and action records now use Supabase with Realtime refresh. Today completion events are durable in `personal_action_events`; task drafts and starring remain browser-local. A provider bug that discarded prepared task IDs was fixed, with legacy completion recovery that avoids duplicate rewards.
+Household board notes and action records now use Supabase with Realtime refresh. Today completion events are durable in `personal_action_events`. The sibling room now includes the household action picker. Task drafts/starring have a Supabase adapter and migration in the repository, but the migration still needs to be applied after the Supabase connection timeout clears.
 
 ## Calendar decision — September 8
 

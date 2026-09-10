@@ -9,6 +9,12 @@
 
 Next: sync task drafts/starring, add the internal shared calendar and Google OAuth, and replace the legacy raid route with the household action picker.
 
+## 2026-09-10 — Task drafts and household action picker
+
+- Added a household action picker to sibling room visits: poke, note, pillow, gift, and silly object. Actions use the existing guarded `our_place_leave_action` RPC.
+- Added Supabase task draft adapter and `personal_tasks` migration. The app merges remote drafts into the local task service and writes add/star/complete changes back through `our_place_save_task`.
+- Code and tests are ready. Applying the task migration is pending because the Supabase management connection began timing out repeatedly after the Disk IO warning; retry before exercising task sync in production.
+
 ## 2026-06-30 — MVP foundation baseline
 
 - React/Vite mobile-first application scaffolded.

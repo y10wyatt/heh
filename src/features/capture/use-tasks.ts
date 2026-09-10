@@ -4,6 +4,7 @@ import type {Task,TaskCategory} from "../../domain/models/task";
 import {LocalTaskRepository} from "../../infrastructure/local/task-repository";
 import {useAuth} from "../auth/AuthProvider";
 import {TaskService} from "./task-service";
+import {SupabaseTaskRepository} from "../../infrastructure/supabase/task-repository";
 
 export function useTasks(){
   const {currentUserId,groupId,prepareAction,saveAction}=useAppData();
@@ -16,8 +17,9 @@ export function useTasks(){
     if(!groupId)return {};
     try{
       const actor={userId:currentUserId,groupId};
-      return {service:new TaskService(
-        new LocalTaskRepository(localStorage,{...actor,mode:configured?"connected":"demo"}),
+      const local=new LocalTaskRepository(localStorage,{...actor,mode:configured?"connected":"demo"});
+      return {local,remote:configured?new SupabaseTaskRepository():undefined,service:new TaskService(
+        local,
         {prepare:prepareAction,commit:saveAction},actor,
       )};
     }catch{return {error:"Device storage is unavailable. Enable browser storage to save tasks."}}
@@ -25,7 +27,7 @@ export function useTasks(){
 
   useEffect(()=>{
     const reload=()=>{
-      try{setTasks(setup.service?.list()??[]);setError("")}
+      try{setTasks(setup.service?.list()??[]);setError("");if(setup.remote)void setup.remote.list(currentUserId,groupId).then(remoteTasks=>{remoteTasks.forEach(task=>setup.local?.save(task));setTasks(setup.service?.list()??[]) }).catch(reason=>setError(reason instanceof Error?reason.message:"Unable to sync saved goals"))}
       catch(reason){setError(reason instanceof Error?reason.message:"Unable to read saved tasks")}
     };
     reload();
@@ -37,7 +39,8 @@ export function useTasks(){
     if(!setup.service||busy.current)return false;
     busy.current=true;setSaving(true);setError("");
     try{
-      await action(setup.service);
+      const result=await action(setup.service);
+      if(setup.remote&&result&&typeof result==="object"&&"id" in result)await setup.remote.save(result as Task);
       setTasks(setup.service.list());
       return true;
     }catch(reason){
@@ -51,7 +54,7 @@ export function useTasks(){
     tasks:tasks.filter(task=>task.userId===currentUserId&&task.groupId===groupId),
     error:setup.error??error,saving,ready:!!setup.service,
     add:(title:string,category?:TaskCategory)=>run(service=>service.add(title,category)),
-    star:(id:string)=>run(service=>service.star(id)),
+    star:(id:string)=>run(service=>{service.star(id);return service.list().find(task=>task.id===id)}),
     complete:(id:string)=>run(service=>service.complete(id)),
   };
 }

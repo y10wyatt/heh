@@ -2,10 +2,20 @@ import {useEffect,useState} from "react";
 import {Link,useLocation,useNavigate,useParams} from "react-router-dom";
 import {useAppData} from "../../app/AppDataProvider";
 import {useGameData} from "../../app/GameDataProvider";
+import {useAuth} from "../auth/AuthProvider";
 import {Button,Card,PageHeader,StatusChip} from "../../components/ui";
 import {VisualAsset} from "../../components/VisualAsset";
 import {uiContent} from "../../config/ui-content";
 import type {RoomAction,RoomSlot} from "../../domain/models/rooms";
+
+function HouseholdActionPicker({groupId,targetUserId}:{groupId:string;targetUserId:string}){
+  const {leaveHouseholdAction}=useAppData();
+  const [kind,setKind]=useState<"poke"|"note"|"pillow"|"gift"|"silly_object">("poke");
+  const [message,setMessage]=useState("");
+  const [saved,setSaved]=useState(false);const [error,setError]=useState("");
+  async function send(){setError("");try{await leaveHouseholdAction({id:crypto.randomUUID(),groupId,targetUserId,actionType:kind,message:message.trim()||undefined,payload:{}});setMessage("");setSaved(true)}catch(reason){setError(reason instanceof Error?reason.message:"Could not leave that surprise")}}
+  return <Card><h2>Leave something behind</h2><p>It will be waiting here the next time they open the app.</p><div className="choice-grid">{(["poke","note","pillow","gift","silly_object"] as const).map(value=><button type="button" className={`choice ${kind===value?"selected":""}`} aria-pressed={kind===value} onClick={()=>setKind(value)} key={value}>{value.replace("_"," ")}</button>)}</div>{kind==="note"?<textarea value={message} onChange={event=>setMessage(event.target.value)} maxLength={500} rows={3} placeholder="Leave a little message…"/>:null}{error?<p role="alert" className="our-place-error">{error}</p>:null}{saved?<p role="status" className="today-notice">Left behind. They’ll find it next visit.</p>:null}<Button onClick={()=>void send()}>{saved?"Leave another":"Leave it here"}</Button></Card>;
+}
 
 export function RoomsHomePage(){
   const copy=uiContent.rooms;
@@ -24,14 +34,15 @@ export function RoomsHomePage(){
 export function RoomViewPage(){
   const {roomId=""}=useParams();
   const copy=uiContent.rooms;
-  const {currentUserId}=useAppData();
+  const {currentUserId,groupId}=useAppData();
+  const {configured}=useAuth();
   const {rooms,loadSlots}=useGameData();
   const room=rooms.find(item=>item.id===roomId);
   const [slots,setSlots]=useState<RoomSlot[]>([]);
   useEffect(()=>{if(roomId)void loadSlots(roomId).then(setSlots)},[roomId,loadSlots]);
   if(!room)return <><PageHeader title="Room unavailable" subtitle="This room is not in your challenge group"/></>;
   const own=room.ownerId===currentUserId;
-  return <><PageHeader title={room.name} subtitle={copy.viewSubtitle}/><div className={`room-scene theme-${room.theme}`}><VisualAsset asset={own?"williamFullBody":"sisterFullBody"} className="full-avatar"/><div className="room-canvas">{slots.map(slot=><div className={slot.isProtected?"protected":""} key={slot.id}>{slot.slotKey}{slot.isProtected?<span aria-label="Protected">🔒</span>:null}</div>)}</div></div><Card><h2>{copy.recentTitle}</h2><p>{copy.recentBody}</p></Card><div className="split"><Button>{copy.decorateLabel}</Button>{own?<Link to={`/house/rooms/${room.id}/traps`}>{copy.trapsLabel}</Link>:<Link className="button-link" to={`/house/rooms/${room.id}/raid`}>{copy.raidLabel}</Link>}</div></>;
+  return <><PageHeader title={room.name} subtitle={copy.viewSubtitle}/><div className={`room-scene theme-${room.theme}`}><VisualAsset asset={own?"williamFullBody":"sisterFullBody"} className="full-avatar"/><div className="room-canvas">{slots.map(slot=><div className={slot.isProtected?"protected":""} key={slot.id}>{slot.slotKey}{slot.isProtected?<span aria-label="Protected">🔒</span>:null}</div>)}</div></div><Card><h2>{copy.recentTitle}</h2><p>{copy.recentBody}</p></Card>{configured&&!own?<HouseholdActionPicker groupId={groupId} targetUserId={room.ownerId}/>:null}<div className="split"><Button>{copy.decorateLabel}</Button>{own?<Link to={`/house/rooms/${room.id}/traps`}>{copy.trapsLabel}</Link>:<Link className="button-link" to={`/house/rooms/${room.id}/raid`}>{copy.raidLabel}</Link>}</div></>;
 }
 
 export function RaidPage(){
