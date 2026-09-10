@@ -61,8 +61,8 @@ Compatibility risk: the proposal deliberately disables the legacy browser's dire
 
 ## Next application work
 
-1. Deploy the application integration that calls the new household RPCs.
-2. Sign in with both existing accounts and complete onboarding to create settings/rooms.
-3. Replace browser-local board/room action writes with the persistent household action repository and add Realtime/reconnect refresh.
+1. Sign in with both existing accounts at `https://sibling-showdown.vercel.app` and complete onboarding to create settings/rooms.
+2. Replace browser-local board/room action writes with the persistent household action repository and add Realtime/reconnect refresh.
+3. Add app-owned shared plans and the mobile agenda, then evaluate per-user Google Calendar OAuth.
 
-No remote tables, policies, functions, or rows were changed during this audit.
+No additional remote tables, policies, functions, or rows were changed during this documentation pass.

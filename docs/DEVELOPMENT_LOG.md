@@ -177,3 +177,11 @@ No remote database table, policy, function, or row changed. The proposal is read
 Validation: 31 application tests and production build pass after integration. Local database suite previously passed 20 pgTAP assertions, simultaneous invite race, and database lint.
 
 Next: deploy this application integration, complete onboarding with the two existing accounts, then replace local board/room state with live persistence and reconnect refresh.
+
+## 2026-09-10 — onboarding build deployed
+
+- Pushed commit `38a3183` to `origin/main` and confirmed the Vercel production deployment is Ready at `https://sibling-showdown.vercel.app`.
+- Verified the signed-out production route reaches the Supabase account entry screen. A signed-in onboarding run is still pending because no test credentials were supplied.
+- Updated handoff and roadmap checkpoints: next work is onboarding with both existing accounts, then persistent board/room actions and Realtime/reconnect refresh.
+
+Known limitation: connected Today completion still targets the legacy `action_events` path, which is absent from the selected backend. Keep that persistence slice separate from the approved household migration; do not re-enable direct legacy writes.

@@ -130,13 +130,12 @@ Browser QA note: generic automation scrolling moved the outer `.device-screen` a
 
 ## Next concrete milestone
 
-The database foundation is applied. Current checkpoint: deploy and exercise the onboarding-connected UI with both existing accounts, then persist room actions and verify cross-device discovery.
+The database foundation is applied and the onboarding-connected build is live at `https://sibling-showdown.vercel.app`. Current checkpoint: exercise onboarding with both existing accounts, then persist room actions and verify cross-device discovery.
 
-1. Push/deploy the onboarding-connected application integration.
-2. Sign in with both existing accounts and complete onboarding; verify one settings row and room per member.
-3. Replace browser-local board/room writes with per-record persistence, scoped live updates, and reconnect refresh.
-4. Verify two-account phone/desktop delivery, reopened surprise discovery, retry safety, sign-out cleanup, and failed-save recovery.
-5. Add app-owned shared plans and the mobile agenda. Then add per-user Google OAuth, selected calendars, busy-detail privacy, and explicit export.
+1. Sign in with both existing accounts and complete onboarding; verify one settings row and room per member.
+2. Replace browser-local board/room writes with per-record persistence, scoped live updates, and reconnect refresh.
+3. Verify two-account phone/desktop delivery, reopened surprise discovery, retry safety, sign-out cleanup, and failed-save recovery.
+4. Add app-owned shared plans and the mobile agenda. Then add per-user Google OAuth, selected calendars, busy-detail privacy, and explicit export.
 
 Then: household scaling → first native room widget → Me goals/boxing quest → decoration/collection → earned shop → paid cosmetics and neighbourhood exploration after validation. The full roadmap governs sequencing and open decisions.
 
