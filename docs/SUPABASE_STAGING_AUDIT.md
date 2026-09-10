@@ -65,4 +65,12 @@ Compatibility risk: the proposal deliberately disables the legacy browser's dire
 2. Replace browser-local board/room action writes with the persistent household action repository and add Realtime/reconnect refresh.
 3. Add app-owned shared plans and the mobile agenda, then evaluate per-user Google Calendar OAuth.
 
+## Disk IO warning review — September 10, 2026
+
+- Supabase sent a Disk IO Budget warning for this project. A live dashboard check shortly afterward showed the primary `t4g.nano` instance at **1% Disk IO**, **26% CPU**, and **89% memory**; storage was **0.27 GB of 2 GB**.
+- The database report showed a **99.27% cache hit rate**, **7.46% CPU**, and **0.03 GB** database size. Disk IOPS/throughput charts were temporarily unavailable in the dashboard.
+- Query Performance showed two slow queries, both Supabase metadata introspection (`pg_timezone_names` and `pg_available_extensions`), not application queries. `pg_stat_statements` was dominated by dashboard introspection and migration/advisor work; no high-volume application writer was visible.
+- Conclusion: treat the email as a burst/throttling warning. Do not upgrade compute yet. Avoid repeated advisor/schema scans on the nano instance, watch Disk IO and memory over the next day, and revisit sizing only if the warning repeats during normal app traffic.
+- If the warning repeats, capture the hourly report first, then optimize the specific query or move to a larger compute add-on. Compute changes are paid plan decisions and were not made here.
+
 No additional remote tables, policies, functions, or rows were changed during this documentation pass.

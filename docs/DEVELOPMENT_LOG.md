@@ -190,3 +190,10 @@ Known limitation: connected Today completion still targets the legacy `action_ev
 
 - Disabled Supabase **Confirm email** for project `raidfgiukctxxmahnuzs` so private beta accounts can be created and used with email + password without waiting for SMTP delivery.
 - Verified the setting persisted after dashboard reload. Re-enable it before public launch, or configure a verified SMTP provider first.
+
+## 2026-09-10 — Disk IO warning review
+
+- Reviewed the Supabase Disk IO Budget warning for `raidfgiukctxxmahnuzs`.
+- Current dashboard snapshot: Disk IO 1%, CPU 26%, memory 89%, 0.27 GB of 2 GB disk used; database report cache hit 99.27%, CPU 7.46%, database size 0.03 GB.
+- Query stats were dominated by Supabase dashboard metadata scans and migration/advisor work, with no high-volume app query visible. No compute upgrade or schema change made.
+- Next check: monitor the hourly report during ordinary app use. Optimize a confirmed workload before considering paid compute.
