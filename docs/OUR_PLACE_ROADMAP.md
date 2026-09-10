@@ -1,8 +1,10 @@
 # Our Place: current status and next steps
 
-Updated September 10, 2026. The approved sibling-home experience and personal account entry are live at `https://sibling-showdown.vercel.app`. The selected Supabase project now has the approved legacy-compatible household foundation applied. The onboarding-connected build is deployed to Vercel. Shared-board/door-seen state remains browser-local until the persistence slice lands.
+Updated September 10, 2026. The approved sibling-home experience and personal account entry are live at `https://sibling-showdown.vercel.app`. The selected Supabase project now has the approved household foundation and sync slice applied. The onboarding-connected build is deployed to Vercel. Task drafts/starring and some room presentation state remain browser-local.
 
 ## Product direction
+
+Current sync checkpoint: household notes/actions and Today completion events are now persisted in Supabase with Realtime refresh. The web build is installable as a PWA for mobile testing.
 
 The app should feel like living under the same roof again. Affectionate sibling mischief is central; personal progress supplies action points, and shared aspirations give siblings things to look forward to.
 

@@ -2,16 +2,17 @@ import {createContext,useContext,useEffect,useMemo,useState,type PropsWithChildr
 import type {ActionEvent} from "../domain/models/action-event";
 import type {PointRule} from "../domain/models/core";
 import type {CreateHouseholdInput,HouseholdOnboardingInput,HouseholdRepository,HouseholdState} from "../domain/models/household";
-import type {ActionEventRepository,MembershipRepository,PointRuleRepository} from "../domain/repositories";
+import type {ActionEventRepository,HouseholdActionRecord,HouseholdActionRepository,LeaveHouseholdActionInput,MembershipRepository,PointRuleRepository} from "../domain/repositories";
 import {events as seedEvents,groupId as demoGroupId,rules as seedRules,users} from "../dev/seed";
 import {useAuth} from "../features/auth/AuthProvider";
 import {LogAction,type LogActionInput} from "../features/capture/log-action";
 import {PersistentDemoActionEventRepository} from "../dev/persistent-events";
-import {SupabaseActionEventRepository,SupabaseHouseholdRepository,SupabaseMembershipRepository,SupabasePointRuleRepository} from "../infrastructure/supabase/repositories";
+import {SupabaseActionEventRepository,SupabaseHouseholdActionRepository,SupabaseHouseholdRepository,SupabaseMembershipRepository,SupabasePointRuleRepository} from "../infrastructure/supabase/repositories";
+import {supabase} from "../infrastructure/supabase/client";
 
-type AppData={events:ActionEvent[];rules:PointRule[];currentUserId:string;groupId:string;household:HouseholdState|null;loading:boolean;error:string;refresh():Promise<void>;createHousehold(input:CreateHouseholdInput):Promise<void>;joinHousehold(code:string,input:HouseholdOnboardingInput):Promise<void>;completeOnboarding(input:HouseholdOnboardingInput):Promise<void>;logAction(input:LogActionInput):Promise<ActionEvent>;prepareAction:LogAction["prepare"];saveAction:LogAction["commit"]};
+type AppData={events:ActionEvent[];rules:PointRule[];householdActions:HouseholdActionRecord[];currentUserId:string;groupId:string;household:HouseholdState|null;loading:boolean;error:string;refresh():Promise<void>;createHousehold(input:CreateHouseholdInput):Promise<void>;joinHousehold(code:string,input:HouseholdOnboardingInput):Promise<void>;completeOnboarding(input:HouseholdOnboardingInput):Promise<void>;leaveHouseholdAction(input:LeaveHouseholdActionInput):Promise<HouseholdActionRecord>;setHouseholdActionState(id:string,state:Exclude<HouseholdActionRecord["state"],"placed">):Promise<void>;logAction(input:LogActionInput):Promise<ActionEvent>;prepareAction:LogAction["prepare"];saveAction:LogAction["commit"]};
 const AppDataContext=createContext<AppData|null>(null);
-type Dependencies={events:ActionEventRepository;rules:PointRuleRepository;memberships:MembershipRepository;household:HouseholdRepository;fallbackGroupId?:string};
+type Dependencies={events:ActionEventRepository;rules:PointRuleRepository;memberships:MembershipRepository;household:HouseholdRepository;householdActions?:HouseholdActionRepository;fallbackGroupId?:string};
 
 const demoDependencies:Dependencies={
   events:new PersistentDemoActionEventRepository(seedEvents),
@@ -25,7 +26,8 @@ const demoDependencies:Dependencies={
   },
   fallbackGroupId:demoGroupId,
 };
-const remoteDependencies:Dependencies={events:new SupabaseActionEventRepository(),rules:new SupabasePointRuleRepository(),memberships:new SupabaseMembershipRepository(),household:new SupabaseHouseholdRepository()};
+const remoteHouseholdActions=new SupabaseHouseholdActionRepository();
+const remoteDependencies:Dependencies={events:new SupabaseActionEventRepository(),rules:new SupabasePointRuleRepository(),memberships:new SupabaseMembershipRepository(),household:new SupabaseHouseholdRepository(),householdActions:remoteHouseholdActions};
 
 export function AppDataProvider({children}:PropsWithChildren){
   const {configured,user}=useAuth();
@@ -33,6 +35,7 @@ export function AppDataProvider({children}:PropsWithChildren){
   const currentUserId=user?.id??users.william;
   const [events,setEvents]=useState<ActionEvent[]>(configured?[]:seedEvents);
   const [rules,setRules]=useState<PointRule[]>(configured?[]:seedRules);
+  const [householdActions,setHouseholdActions]=useState<HouseholdActionRecord[]>([]);
   const [groupId,setGroupId]=useState(dependencies.fallbackGroupId??"");
   const [household,setHousehold]=useState<HouseholdState|null>(configured?null:{groupId:demoGroupId,groupName:"Our place",memberRole:"owner",memberCount:2,onboardingCompleted:true});
   const [loading,setLoading]=useState(configured);
@@ -56,24 +59,38 @@ export function AppDataProvider({children}:PropsWithChildren){
       setHousehold(nextHousehold);
       const foundGroupId=nextHousehold?.groupId??"";
       setGroupId(foundGroupId);
-      if(!foundGroupId){setEvents([]);setRules([]);return}
-      if(configured){setEvents([]);setRules([]);return}
+      if(!foundGroupId){setEvents([]);setRules([]);setHouseholdActions([]);return}
+      if(configured){
+        const [nextEvents,nextHouseholdActions]=await Promise.all([dependencies.events.list(foundGroupId),dependencies.householdActions?.listRecords(foundGroupId)??Promise.resolve([])]);
+        setEvents(nextEvents);setHouseholdActions(nextHouseholdActions);setRules([]);return;
+      }
       const [nextEvents,nextRules]=await Promise.all([dependencies.events.list(foundGroupId),dependencies.rules.list(foundGroupId)]);
-      setEvents(nextEvents);setRules(nextRules);
+      setEvents(nextEvents);setRules(nextRules);setHouseholdActions([]);
     }catch(reason){setError(reason instanceof Error?reason.message:"Unable to load challenge data")}
     finally{setLoading(false)}
   }
   useEffect(()=>{void load()},[currentUserId,configured]);
+  useEffect(()=>{
+    if(!configured||!groupId||!supabase)return;
+    const client=supabase;
+    const channel=client.channel(`our-place-sync:${groupId}`)
+      .on("postgres_changes",{event:"*",schema:"public",table:"household_actions",filter:`group_id=eq.${groupId}`},()=>void load())
+      .on("postgres_changes",{event:"*",schema:"public",table:"personal_action_events",filter:`group_id=eq.${groupId}`},()=>void load())
+      .subscribe();
+    return()=>{void client.removeChannel(channel)};
+  },[configured,groupId]);
 
-  const value=useMemo<AppData>(()=>({events,rules,currentUserId,groupId,household,loading,error,refresh:load,
+  const value=useMemo<AppData>(()=>({events,rules,householdActions,currentUserId,groupId,household,loading,error,refresh:load,
     async createHousehold(input){await dependencies.household.create(input);await load()},
     async joinHousehold(code,input){await dependencies.household.join(code,input);await load()},
     async completeOnboarding(input){if(!groupId)throw new Error("No household is available");await dependencies.household.complete(groupId,input);await load()},
+    async leaveHouseholdAction(input){if(!dependencies.householdActions)throw new Error("Household actions are unavailable in demo mode");const action=await dependencies.householdActions.leave(input);setHouseholdActions(current=>[action,...current.filter(item=>item.id!==action.id)]);return action},
+    async setHouseholdActionState(id,state){if(!dependencies.householdActions)throw new Error("Household actions are unavailable in demo mode");const action=await dependencies.householdActions.setState(id,state);setHouseholdActions(current=>current.map(item=>item.id===action.id?action:item))},
     ...capture,
     async logAction(input){
       return capture.saveAction(capture.prepareAction(input));
     },
-  }),[events,rules,currentUserId,groupId,household,loading,error,capture,dependencies]);
+  }),[events,rules,householdActions,currentUserId,groupId,household,loading,error,capture,dependencies]);
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
 }
 export function useAppData(){const value=useContext(AppDataContext);if(!value)throw new Error("useAppData must be used inside AppDataProvider");return value}

@@ -1,5 +1,14 @@
 # Development log
 
+## 2026-09-10 — Shared sync, Today persistence, mobile web shell
+
+- Added `20260910_sync_and_mobile.sql`: durable `personal_action_events`, guarded RPCs for logging completions and marking surprises discovered, and Realtime publication for household actions, rooms, and personal events.
+- Connected board notes and household action reads/writes to Supabase. Open devices refresh when household actions or Today events change.
+- Added an installable PWA shell with manifest, icon, service worker, viewport, and iOS metadata. Native widgets remain a later phase.
+- Validation: `npm run test` (31 passed), `npm run build` passed, and remote checks confirmed the table, RPCs, and Realtime publication entries.
+
+Next: sync task drafts/starring, add the internal shared calendar and Google OAuth, and replace the legacy raid route with the household action picker.
+
 ## 2026-06-30 — MVP foundation baseline
 
 - React/Vite mobile-first application scaffolded.

@@ -8,6 +8,7 @@ export type SharedBoardNote={
   authorId:string;
   createdAt:string;
 };
+export type SharedBoardRemote={notes:SharedBoardNote[];add(title:string,body:string):Promise<boolean>};
 
 const sampleNotes=(authorId:string):SharedBoardNote[]=>[
   {id:"weekend-away",title:"Weekend away",body:"Pick a place",color:"yellow",authorId,createdAt:"2026-09-01T12:00:00.000Z"},
@@ -22,14 +23,15 @@ function isNote(value:unknown):value is SharedBoardNote{
     typeof note.authorId==="string"&&typeof note.createdAt==="string"&&["yellow","cream","sage","peach"].includes(note.color??"");
 }
 
-export function useSharedBoard(groupId:string,currentUserId:string,demo:boolean){
+export function useSharedBoard(groupId:string,currentUserId:string,demo:boolean,remote?:SharedBoardRemote){
   const key=useMemo(()=>`sibling-showdown:board:v1:${demo?"demo":"connected"}:${groupId}`,[demo,groupId]);
   const [notes,setNotes]=useState<SharedBoardNote[]>([]);
   const [error,setError]=useState("");
 
   useEffect(()=>{
     if(!groupId)return;
-    const load=()=>{
+    const load=async()=>{
+      if(remote){setNotes(remote.notes);setError("");return}
       try{
         const parsed=JSON.parse(localStorage.getItem(key)??"null");
         const next=Array.isArray(parsed)&&parsed.every(isNote)?parsed:demo?sampleNotes(currentUserId):[];
@@ -38,11 +40,12 @@ export function useSharedBoard(groupId:string,currentUserId:string,demo:boolean)
     };
     load();window.addEventListener("storage",load);
     return()=>window.removeEventListener("storage",load);
-  },[currentUserId,demo,groupId,key]);
+  },[currentUserId,demo,groupId,key,remote]);
 
-  function add(title:string,body:string){
+  async function add(title:string,body:string){
     const trimmed=title.trim();
     if(!trimmed)return false;
+    if(remote)return remote.add(trimmed,body);
     const next=[...notes,{id:crypto.randomUUID(),title:trimmed,body:body.trim(),color:"yellow" as const,authorId:currentUserId,createdAt:new Date().toISOString()}];
     try{localStorage.setItem(key,JSON.stringify(next));setNotes(next);setError("");return true}
     catch{setError("The note could not be saved on this device.");return false}

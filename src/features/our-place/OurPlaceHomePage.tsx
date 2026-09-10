@@ -1,5 +1,5 @@
 import {ArrowRightIcon,HeartIcon,HomeIcon,PlusIcon} from "@radix-ui/react-icons";
-import {useState,type FormEvent} from "react";
+import {useMemo,useState,type FormEvent} from "react";
 import {useNavigate} from "react-router-dom";
 import {useAppData} from "../../app/AppDataProvider";
 import {useGameData} from "../../app/GameDataProvider";
@@ -10,10 +10,15 @@ import {useSharedBoard,type SharedBoardNote} from "./shared-board";
 
 export function OurPlaceHomePage(){
   const navigate=useNavigate();
-  const {currentUserId,groupId}=useAppData();
+  const {currentUserId,groupId,householdActions,leaveHouseholdAction,setHouseholdActionState}=useAppData();
   const {configured}=useAuth();
   const {rooms,roomActions,loading,error}=useGameData();
-  const {notes,error:boardError,add}=useSharedBoard(groupId,currentUserId,!configured);
+  const siblingId=rooms.find(room=>room.ownerId!==currentUserId)?.ownerId;
+  const remoteBoard=useMemo(()=>configured?{
+    notes:householdActions.filter(action=>action.actionType==="note").map(action=>({id:action.id,title:action.payload.title as string||"A note for us",body:action.message??"",color:(action.payload.color as SharedBoardNote["color"])||"yellow",authorId:action.actorId,createdAt:action.createdAt})),
+    async add(title:string,body:string){if(!siblingId)return false;try{await leaveHouseholdAction({id:crypto.randomUUID(),groupId,targetUserId:siblingId,actionType:"note",message:body,payload:{title,color:"yellow"}});return true}catch{return false}}
+  }:undefined,[configured,groupId,householdActions,leaveHouseholdAction,siblingId]);
+  const {notes,error:boardError,add}=useSharedBoard(groupId,currentUserId,!configured,remoteBoard);
   const {hasUnseenVisit,markSeen}=useDoorVisits(groupId,currentUserId,roomActions);
   const [adding,setAdding]=useState(false);
   const [selected,setSelected]=useState<SharedBoardNote>();
@@ -23,8 +28,15 @@ export function OurPlaceHomePage(){
   const ownRoom=ordered.find(room=>room.ownerId===currentUserId);
   const ownDoorAjar=ownRoom?hasUnseenVisit(ownRoom.id):false;
 
-  function enter(roomId:string){markSeen(roomId);navigate(`/house/rooms/${roomId}`)}
-  function saveNote(event:FormEvent){event.preventDefault();if(add(title,body)){setTitle("");setBody("");setAdding(false)}}
+  async function enter(roomId:string){
+    markSeen(roomId);
+    const room=rooms.find(item=>item.id===roomId);
+    if(configured&&room?.ownerId===currentUserId){
+      await Promise.all(householdActions.filter(action=>action.targetUserId===currentUserId&&["placed","discovered"].includes(action.state)).map(action=>setHouseholdActionState(action.id,"discovered").catch(()=>undefined)));
+    }
+    navigate(`/house/rooms/${roomId}`);
+  }
+  async function saveNote(event:FormEvent){event.preventDefault();if(await add(title,body)){setTitle("");setBody("");setAdding(false)}}
 
   return <div className="our-place-page our-place-home">
     <OurPlaceHeader title="Our place" subtitle="Welcome home."/>

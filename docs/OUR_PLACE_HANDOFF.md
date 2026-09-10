@@ -1,6 +1,6 @@
 # Our Place handoff
 
-Updated September 9, 2026.
+Updated September 10, 2026.
 
 ## Current main-app state
 
@@ -13,7 +13,7 @@ Main routes now are:
 - `/me` — planning, tracking, collection, and quest entry points
 - `/house/rooms/:roomId` — personal rooms and persistent visit discovery
 
-Browser-local for this slice: shared-board notes, door seen-state, tidy display state, and task drafts. Action completion and room actions continue through the existing service/repository boundaries. A provider bug that discarded prepared task IDs was fixed, with legacy completion recovery that avoids duplicate rewards.
+Household board notes and action records now use Supabase with Realtime refresh. Today completion events are durable in `personal_action_events`; task drafts and starring remain browser-local. A provider bug that discarded prepared task IDs was fixed, with legacy completion recovery that avoids duplicate rewards.
 
 ## Calendar decision — September 8
 
@@ -25,7 +25,7 @@ No calendar UI, Google OAuth grant, remote schema, or sync job has been implemen
 
 ## Current state
 
-The approved prototype has been translated into the main application, passed its local code/mobile visual checks, and replaced the old Vercel UI. The next milestone is staging account/household sync. Do not describe browser-local board, task, room-seen, or tidy state as live-synced or production-ready.
+The approved prototype has been translated into the main application, passed its local code/mobile visual checks, and replaced the old Vercel UI. The next milestone is exercising two-account sync in staging. The old raid route still expects legacy entitlements; the household action picker is next.
 
 ## Three separate locations
 
