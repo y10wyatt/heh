@@ -9,6 +9,7 @@ import {useAuth} from "../features/auth/AuthProvider";
 import {InMemoryDailyResultRepository,InMemoryRoomActionRepository,InMemoryRoomEntitlementRepository,InMemoryRoomItemRepository,InMemoryRoomRepository} from "../infrastructure/memory/repositories";
 import {SupabaseHouseholdActionRepository,SupabaseHouseholdRoomRepository} from "../infrastructure/supabase/repositories";
 import {useAppData} from "./AppDataProvider";
+import {supabase} from "../infrastructure/supabase/client";
 
 type Dependencies={rooms:RoomRepository;actions:RoomActionRepository;entitlements:RoomEntitlementRepository;items:RoomItemRepository;results:DailyResultRepository};
 const demoEntitlements=new InMemoryRoomEntitlementRepository([...seedEntitlements]);
@@ -65,6 +66,15 @@ export function GameDataProvider({children}:PropsWithChildren){
   },[currentUserId,dependencies,groupId]);
 
   useEffect(()=>{void refresh()},[refresh]);
+  useEffect(()=>{
+    if(!configured||!groupId||!supabase)return;
+    const client=supabase;
+    const channel=client.channel(`our-place-rooms:${groupId}`)
+      .on("postgres_changes",{event:"*",schema:"public",table:"household_actions",filter:`group_id=eq.${groupId}`},()=>void refresh())
+      .on("postgres_changes",{event:"*",schema:"public",table:"household_rooms",filter:`group_id=eq.${groupId}`},()=>void refresh())
+      .subscribe();
+    return()=>{void client.removeChannel(channel)};
+  },[configured,groupId,refresh]);
   const loadSlots=useCallback((roomId:string)=>dependencies.rooms.slots(roomId),[dependencies]);
 
   const value=useMemo<GameData>(()=>({rooms,roomActions,entitlements,items,loading,error,lastRoomAction,dailyResult,loadSlots,
