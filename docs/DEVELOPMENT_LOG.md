@@ -165,3 +165,15 @@ No remote database table, policy, function, or row was changed. Next: reproduce 
 Validation: all 20 pgTAP assertions passed, the simultaneous invite race passed, Supabase local database lint found no schema errors, all 31 application tests passed, and the production build succeeded.
 
 No remote database table, policy, function, or row changed. The proposal is ready for owner review; `SCHEMA_RLS_PLAN.md` still requires explicit approval before remote application.
+
+## 2026-09-10 — approved household migration and onboarding integration
+
+- Received owner approval and applied `secure_household_onboarding` to Supabase project `raidfgiukctxxmahnuzs`.
+- Applied `post_apply_legacy_hardening` to add the action actor index and remove anonymous execution from legacy security-definer helpers.
+- Verified remote tables/functions and preserved counts: one group, two memberships, five invites, three profiles. Existing members have no settings/rooms yet; onboarding will create those rows.
+- Re-ran remote advisors. New onboarding foreign-key warning is gone. Remaining notices are intentional authenticated RPC security-definer access, disabled leaked-password protection, and pre-existing fitness-schema tuning.
+- Connected the app to legacy-compatible household state, create/join/complete RPCs, member rooms, and persistent household actions. Added signed-in onboarding UI for household setup, invite joining, name/avatar, annoyance level, and door sign/color.
+
+Validation: 31 application tests and production build pass after integration. Local database suite previously passed 20 pgTAP assertions, simultaneous invite race, and database lint.
+
+Next: deploy this application integration, complete onboarding with the two existing accounts, then replace local board/room state with live persistence and reconnect refresh.

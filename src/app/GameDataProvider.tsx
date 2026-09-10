@@ -7,7 +7,7 @@ import {ApplyRoomAction} from "../features/rooms/apply-room-action";
 import {FinalizeDay} from "../features/scoreboard/finalize-day";
 import {useAuth} from "../features/auth/AuthProvider";
 import {InMemoryDailyResultRepository,InMemoryRoomActionRepository,InMemoryRoomEntitlementRepository,InMemoryRoomItemRepository,InMemoryRoomRepository} from "../infrastructure/memory/repositories";
-import {SupabaseDailyResultRepository,SupabaseRoomActionRepository,SupabaseRoomEntitlementRepository,SupabaseRoomItemRepository,SupabaseRoomRepository} from "../infrastructure/supabase/repositories";
+import {SupabaseHouseholdActionRepository,SupabaseHouseholdRoomRepository} from "../infrastructure/supabase/repositories";
 import {useAppData} from "./AppDataProvider";
 
 type Dependencies={rooms:RoomRepository;actions:RoomActionRepository;entitlements:RoomEntitlementRepository;items:RoomItemRepository;results:DailyResultRepository};
@@ -20,11 +20,11 @@ const demoDependencies:Dependencies={
   results:new InMemoryDailyResultRepository(),
 };
 const remoteDependencies:Dependencies={
-  rooms:new SupabaseRoomRepository(),
-  actions:new SupabaseRoomActionRepository(),
-  entitlements:new SupabaseRoomEntitlementRepository(),
-  items:new SupabaseRoomItemRepository(),
-  results:new SupabaseDailyResultRepository(),
+  rooms:new SupabaseHouseholdRoomRepository(),
+  actions:new SupabaseHouseholdActionRepository(),
+  entitlements:{list:async()=>[]},
+  items:{list:async()=>[]},
+  results:{finalize:async()=>{throw new Error("Daily results are not connected to this household yet")}},
 };
 
 type GameData={

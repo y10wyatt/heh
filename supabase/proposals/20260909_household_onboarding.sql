@@ -5,7 +5,7 @@
 begin;
 
 -- Preserve the legacy function signature while making its lookup explicit and safe.
-create or replace function public.is_group_member(p_group_id uuid)
+create or replace function public.is_group_member(target_group_id uuid)
 returns boolean
 language sql
 stable
@@ -14,7 +14,7 @@ set search_path = ''
 as $$
   select (select auth.uid()) is not null and exists (
     select 1 from public.group_members member
-    where member.group_id = p_group_id
+    where member.group_id = target_group_id
       and member.user_id = (select auth.uid())
   );
 $$;

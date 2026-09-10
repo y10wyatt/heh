@@ -124,19 +124,19 @@ Browser QA note: generic automation scrolling moved the outer `.device-screen` a
 - Reuse auth patterns, but use separate household/goal/event records for concurrent shared activity. Avoid whole-household snapshot overwrites.
 - No secret values were copied or recorded. Do not expose server keys in browser variables.
 - On September 9 the selected `raidfgiukctxxmahnuzs` project was restored and audited. It is the older Weight Loss Competition backend, is separate from Life Dashboard, and already contains Auth users plus one two-member group. Production/local/preview Auth redirects are configured. Its legacy group and invite tables should be preserved; see `SUPABASE_STAGING_AUDIT.md`.
-- The old unused-invite policy exposes unused codes, and the old membership policies allow direct join and self-role changes. The additive proposal closes those paths and replaces create/join with atomic RPCs. It passes 20 pgTAP checks, a simultaneous two-client invite race, local database lint, 31 application tests, and the production build. No remote database change has been applied.
-- Applying it intentionally retires the legacy client's direct group/join/role/invite write paths. Confirm that old client write compatibility is no longer needed before applying it.
+- The old unused-invite policy exposed unused codes, and the old membership policies allowed direct join and self-role changes. The migration closed those paths and replaced create/join with atomic RPCs. It passed 20 pgTAP checks, a simultaneous two-client invite race, local database lint, 31 application tests, and the production build.
+- Owner approved and applied `secure_household_onboarding` on September 10, followed by `post_apply_legacy_hardening`. Existing records remain intact: one group, two memberships, five invites, three profiles. Existing accounts still need to complete onboarding so settings and rooms are created.
+- Applying it intentionally retires the legacy client's direct group/join/role/invite write paths. Old Weight Loss Competition clients need migration to the new RPCs if they are still used.
 
 ## Next concrete milestone
 
-The review-ready database proposal is the current checkpoint. After approval and remote application, connect the UI to it and prepare a real-phone beta where a visit from one account is discoverable by the other after reopening.
+The database foundation is applied. Current checkpoint: deploy and exercise the onboarding-connected UI with both existing accounts, then persist room actions and verify cross-device discovery.
 
-1. Obtain the schema-owner approval required by `SCHEMA_RLS_PLAN.md`, then apply `supabase/proposals/20260909_household_onboarding.sql` to the selected project.
-2. Rerun remote advisors and verify that both existing household members retain access.
-3. Build onboarding UI for create household, join by invite, display name/avatar, annoyance level, and initial door customization.
-4. Replace browser-local board/room writes with per-record persistence, scoped live updates, and reconnect refresh.
-5. Verify two-account phone/desktop delivery, reopened surprise discovery, retry safety, sign-out cleanup, and failed-save recovery.
-6. Add app-owned shared plans and the mobile agenda. Then add per-user Google OAuth, selected calendars, busy-detail privacy, and explicit export.
+1. Push/deploy the onboarding-connected application integration.
+2. Sign in with both existing accounts and complete onboarding; verify one settings row and room per member.
+3. Replace browser-local board/room writes with per-record persistence, scoped live updates, and reconnect refresh.
+4. Verify two-account phone/desktop delivery, reopened surprise discovery, retry safety, sign-out cleanup, and failed-save recovery.
+5. Add app-owned shared plans and the mobile agenda. Then add per-user Google OAuth, selected calendars, busy-detail privacy, and explicit export.
 
 Then: household scaling → first native room widget → Me goals/boxing quest → decoration/collection → earned shop → paid cosmetics and neighbourhood exploration after validation. The full roadmap governs sequencing and open decisions.
 

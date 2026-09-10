@@ -51,11 +51,18 @@ The advisor scan was read-only and ran before this proposal was applied. It repo
 
 Compatibility risk: the proposal deliberately disables the legacy browser's direct group creation, self-join, role update, and invite mutation paths. Any still-used Weight Loss Competition client that relies on those writes would need to move to the new RPCs. Confirm that the retired client does not need continued write compatibility before applying the migration.
 
-## Remaining before remote application
+## Remote application completed
 
-1. Review the exact SQL and receive the owner approval required by `SCHEMA_RLS_PLAN.md`.
-2. Apply it to project `raidfgiukctxxmahnuzs` as one named migration.
-3. Rerun remote security/performance advisors and verify existing two-member household access.
-4. Update the application repositories and build the onboarding screens.
+- Owner approval received September 10, 2026.
+- Applied as migration `secure_household_onboarding` to project `raidfgiukctxxmahnuzs`.
+- Applied follow-up `post_apply_legacy_hardening` with the actor index and legacy helper privilege cleanup.
+- Verified new tables/functions exist, existing counts remain one group/two memberships/five invites/three profiles, and anonymous access to legacy helper functions is disabled.
+- Remote advisors now show no new onboarding foreign-key warning. Remaining warnings are intentional authenticated security-definer RPC access, disabled leaked-password protection, and pre-existing fitness-schema RLS/index tuning.
+
+## Next application work
+
+1. Deploy the application integration that calls the new household RPCs.
+2. Sign in with both existing accounts and complete onboarding to create settings/rooms.
+3. Replace browser-local board/room action writes with the persistent household action repository and add Realtime/reconnect refresh.
 
 No remote tables, policies, functions, or rows were changed during this audit.

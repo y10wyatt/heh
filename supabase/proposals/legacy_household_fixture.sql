@@ -38,11 +38,12 @@ grant select, insert, update on public.groups to authenticated;
 grant select, insert, update on public.group_members to authenticated;
 grant select, insert, update on public.group_invites to authenticated;
 
-create or replace function public.is_group_member(p_group_id uuid)
+drop function if exists public.is_group_member(uuid) cascade;
+create or replace function public.is_group_member(target_group_id uuid)
 returns boolean language sql stable security definer set search_path = '' as $$
   select exists (
     select 1 from public.group_members member
-    where member.group_id = p_group_id and member.user_id = (select auth.uid())
+    where member.group_id = target_group_id and member.user_id = (select auth.uid())
   );
 $$;
 

@@ -1,6 +1,7 @@
 import type {ActionEvent} from "../models/action-event";
 import type {Challenge,DailyResult,PointRule} from "../models/core";
 import type {Room,RoomAction,RoomActionEntitlement,RoomItem,RoomSlot} from "../models/rooms";
+export type {HouseholdRepository} from "../models/household";
 export interface ActionEventRepository{list(groupId:string):Promise<ActionEvent[]>;append(event:ActionEvent):Promise<void>}
 export interface ChallengeRepository{list(groupId:string):Promise<Challenge[]>}
 export interface PointRuleRepository{list(groupId:string):Promise<PointRule[]>}

@@ -3,6 +3,7 @@ import type {ActionEvent} from "../../domain/models/action-event";
 import {mapActionEvent} from "../../domain/models/action-event";
 import type {DailyResult,PointRule} from "../../domain/models/core";
 import type {Room,RoomAction,RoomActionEntitlement,RoomItem,RoomSlot} from "../../domain/models/rooms";
+import type {CreateHouseholdInput,HouseholdOnboardingInput,HouseholdRepository,HouseholdState} from "../../domain/models/household";
 import {supabase} from "./client";
 const db=()=>{if(!supabase)throw new Error("Supabase environment variables are not configured");return supabase};
 type RoomRow={id:string;owner_id:string;challenge_group_id:string;name:string;theme:Room["theme"];created_at:string;updated_at:string};
@@ -27,10 +28,67 @@ export class SupabasePointRuleRepository implements PointRuleRepository{
 }
 export class SupabaseMembershipRepository implements MembershipRepository{
  async findGroupId(userId:string){
-  const {data,error}=await db().from("challenge_group_members").select("challenge_group_id").eq("user_id",userId).limit(1).maybeSingle();
+  const {data,error}=await db().from("group_members").select("group_id").eq("user_id",userId).order("joined_at").limit(1).maybeSingle();
   if(error)throw error;
-  return data?.challenge_group_id??null;
+  return data?.group_id??null;
  }
+}
+
+type HouseholdStateRow={group_id:string;group_name:string;member_role:string;member_count:number;onboarding_completed:boolean};
+export class SupabaseHouseholdRepository implements HouseholdRepository{
+ async state():Promise<HouseholdState|null>{
+  const {data,error}=await db().rpc("our_place_account_state");
+  if(error)throw error;
+  const row=(Array.isArray(data)?data[0]:data) as HouseholdStateRow|undefined;
+  return row?{groupId:row.group_id,groupName:row.group_name,memberRole:row.member_role,memberCount:Number(row.member_count),onboardingCompleted:Boolean(row.onboarding_completed)}:null;
+ }
+ async create(input:CreateHouseholdInput){
+  const {data,error}=await db().rpc("our_place_create_household",{
+   p_name:input.householdName.trim(),p_display_name:input.displayName.trim(),p_avatar_id:input.avatarId,p_annoyance_level:input.annoyanceLevel,
+  } as never);
+  if(error)throw error;
+  return String(data);
+ }
+ async join(inviteCode:string,input:HouseholdOnboardingInput){
+  const {data,error}=await db().rpc("our_place_join_household",{
+   p_code:inviteCode.trim().toUpperCase(),p_display_name:input.displayName.trim(),p_avatar_id:input.avatarId,p_annoyance_level:input.annoyanceLevel,
+  } as never);
+  if(error)throw error;
+  return String(data);
+ }
+ async complete(groupId:string,input:HouseholdOnboardingInput){
+  const {error}=await db().rpc("our_place_complete_onboarding",{
+   p_group_id:groupId,p_display_name:input.displayName.trim(),p_avatar_id:input.avatarId,p_annoyance_level:input.annoyanceLevel,
+   p_door_color:input.doorColor??"honey",p_door_sign:input.doorSign?.trim()||null,
+  } as never);
+  if(error)throw error;
+ }
+}
+
+type HouseholdRoomRow={id:string;owner_id:string;group_id:string;name:string;room_style:string;created_at:string;updated_at:string};
+const householdTheme=(style:string):Room["theme"]=>style==="workshop"?"workshop":style==="sky_room"?"sky_room":style==="chaos"?"chaos":"cozy_cabin";
+export class SupabaseHouseholdRoomRepository implements RoomRepository{
+ async list(groupId:string){
+  const {data,error}=await db().from("household_rooms").select("id,owner_id,group_id,name,room_style,created_at,updated_at").eq("group_id",groupId);
+  if(error)throw error;
+  return (data as HouseholdRoomRow[]).map(row=>({id:row.id,ownerId:row.owner_id,challengeGroupId:row.group_id,name:row.name,theme:householdTheme(row.room_style),createdAt:row.created_at,updatedAt:row.updated_at}));
+ }
+ async slots(){return []}
+ async save(){throw new Error("Room mutations must use the household room RPC")}
+}
+
+type HouseholdActionRow={id:string;group_id:string;actor_id:string;target_user_id:string;action_type:string;message?:string;payload:Record<string,unknown>;state:string;created_at:string};
+export class SupabaseHouseholdActionRepository implements RoomActionRepository{
+ async list(groupId:string){
+  const [{data:actions,error:actionError},{data:rooms,error:roomError}]=await Promise.all([
+   db().from("household_actions").select("id,group_id,actor_id,target_user_id,action_type,message,payload,state,created_at").eq("group_id",groupId).order("created_at",{ascending:false}),
+   db().from("household_rooms").select("id,owner_id").eq("group_id",groupId),
+  ]);
+  if(actionError)throw actionError;if(roomError)throw roomError;
+  const roomByOwner=new Map((rooms as Array<{id:string;owner_id:string}>).map(room=>[room.owner_id,room.id]));
+  return (actions as HouseholdActionRow[]).flatMap(row=>{const targetRoomId=roomByOwner.get(row.target_user_id);if(!targetRoomId)return [];return [{id:row.id,actorId:row.actor_id,targetRoomId,challengeGroupId:row.group_id,actionType:"prank" as const,result:row.state==="tidied"?"reverted" as const:"applied" as const,createdAt:row.created_at,metadata:{...row.payload,message:row.message,state:row.state}}]});
+ }
+ async apply(_input:ApplyRoomActionInput):Promise<RoomAction>{throw new Error("Room action UI is moving to household actions")}
 }
 export class SupabaseRoomRepository implements RoomRepository{
  async list(groupId:string){const {data,error}=await db().from("rooms").select("id,owner_id,challenge_group_id,name,theme,created_at,updated_at").eq("challenge_group_id",groupId);if(error)throw error;return (data as RoomRow[]).map(mapRoom)}

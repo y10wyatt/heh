@@ -1,6 +1,6 @@
 # Our Place: current status and next steps
 
-Updated September 9, 2026. The approved sibling-home experience and personal account entry are live at `https://sibling-showdown.vercel.app`. The selected Supabase project and redirects are configured. A legacy-compatible household onboarding migration is locally verified and awaiting the required schema-owner approval. Shared-board/door-seen state remains browser-local until the household-sync milestone.
+Updated September 10, 2026. The approved sibling-home experience and personal account entry are live at `https://sibling-showdown.vercel.app`. The selected Supabase project now has the approved legacy-compatible household foundation applied. Onboarding-connected application code is ready for deployment. Shared-board/door-seen state remains browser-local until the persistence slice lands.
 
 ## Product direction
 
@@ -60,8 +60,8 @@ Still local-only: board notes, door seen-state, room tidy display state, and per
 
 ## Next steps, in order
 
-1. **Apply the reviewed household foundation.** The integrated UI/auth baseline is already on GitHub and Vercel. The selected backend contains an existing two-person group and legacy invitation system. The compatibility proposal passes 20 pgTAP checks, a simultaneous invite race, local database lint, 31 application tests, and the production build. Obtain the required schema-owner approval, apply it remotely, rerun advisors, and verify the existing household.
-2. **Deliver shared accounts and sync.** Build self-service create/join onboarding on the verified RPCs, then replace browser-local board/room writes with per-record persistence, scoped live updates, and reconnect refresh. Test two-account delivery, duplicate-safe actions, privacy, sign-out cleanup, and failed-save recovery on phones and desktop.
+1. **Deploy and exercise onboarding.** The selected backend has `secure_household_onboarding` plus `post_apply_legacy_hardening`. The application now calls the new account-state/create/join/complete RPCs and renders onboarding for accounts without a completed household profile. Sign in with both existing accounts and verify settings/rooms are created.
+2. **Deliver shared sync.** Replace browser-local board/room writes with per-record persistence, scoped live updates, and reconnect refresh. Test two-account delivery, duplicate-safe actions, privacy, sign-out cleanup, and failed-save recovery on phones and desktop.
 3. **Add Our calendar.** Build app-owned household plans and the mobile agenda after shared sync works. Then connect Google Calendar per user with calendar selection, private busy overlays, and explicit export. Complete the privacy/time-zone/retry acceptance checks before richer two-way sync.
 4. **Validate persistent interaction and expandable households.** Visit → leave something → discover → react → tidy or keep a memory. Start the next interaction slice with a note, pillow prank, and gift; retain the existing duck example. Add quiet preferences, a small active-prank limit, and a memory archive/display distinction. Design membership for multiple people, then extend the hallway with horizontal paging and a household-wide board. Start interaction testing with 2–6 members; this is a test range, not a permanent product limit.
 5. **Test the first native widget early.** Once shared state is reliable, build a room widget showing the latest unseen surprise/note and opening the corresponding room. Validate on real devices in a mobile beta before promising direct widget actions or refresh timing. Do this before a large decoration catalog or paid shop.

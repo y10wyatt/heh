@@ -1,6 +1,6 @@
 # Proposed schema and RLS plan — approval required
 
-No remote database changes have been made.
+The original parallel-schema proposal was not applied. The selected legacy-compatible household migration was approved and applied on September 10, 2026; this document now records its review lineage and remaining cleanup work.
 
 Tables are grouped into identity/group (`profiles`, `challenge_groups`, `challenge_group_members`), evidence/challenges (`action_events`, `challenges`, `point_rules`, `comments`), rooms (`rooms`, `room_slots`, `room_items`, `room_actions`, `room_traps`, `room_action_entitlements`), and finalized calculation (`daily_results`).
 
@@ -22,10 +22,10 @@ Local review evidence:
 - Simultaneous-client proof that `apply_room_action` creates one mutation and consumes one entitlement once.
 - 19 application tests and a successful production build.
 
-Review blocker: explicit owner approval is required before this proposal is applied to the shared remote Supabase project.
+The original proposal remains blocked from remote use. The approved replacement is `supabase/proposals/20260909_household_onboarding.sql`, followed by `supabase/proposals/20260910_post_apply_hardening.sql`.
 
 ## September 9 remote compatibility update
 
 The selected project already has a legacy household and fitness schema. Do not apply the original `202606290001_sibling_showdown_proposal.sql` remotely because it would create a parallel group model and conflicts with the existing `profiles` table. See `SUPABASE_STAGING_AUDIT.md` and the additive review artifact at `supabase/proposals/20260909_household_onboarding.sql`.
 
-The additive proposal now passes 20 legacy-compatibility pgTAP checks, a simultaneous two-client invite claim, and Supabase local database lint. It also closes legacy direct-join, role-promotion, and unused-invite enumeration paths. This evidence does not remove the explicit approval blocker above.
+The additive proposal passed 20 legacy-compatibility pgTAP checks, a simultaneous two-client invite claim, and Supabase local database lint. It closes legacy direct-join, role-promotion, and unused-invite enumeration paths. Owner approval was received and both migrations are now applied. Remaining advisor notices are documented in `SUPABASE_STAGING_AUDIT.md`.
