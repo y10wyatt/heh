@@ -68,12 +68,12 @@ export function GameDataProvider({children}:PropsWithChildren){
   useEffect(()=>{void refresh()},[refresh]);
   useEffect(()=>{
     if(!configured||!groupId||!supabase)return;
-    const client=supabase;
+    const client=supabase;let timer=0;const schedule=()=>{window.clearTimeout(timer);timer=window.setTimeout(()=>void refresh(),300)};
     const channel=client.channel(`our-place-rooms:${groupId}`)
-      .on("postgres_changes",{event:"*",schema:"public",table:"household_actions",filter:`group_id=eq.${groupId}`},()=>void refresh())
-      .on("postgres_changes",{event:"*",schema:"public",table:"household_rooms",filter:`group_id=eq.${groupId}`},()=>void refresh())
+      .on("postgres_changes",{event:"*",schema:"public",table:"household_actions",filter:`group_id=eq.${groupId}`},schedule)
+      .on("postgres_changes",{event:"*",schema:"public",table:"household_rooms",filter:`group_id=eq.${groupId}`},schedule)
       .subscribe();
-    return()=>{void client.removeChannel(channel)};
+    return()=>{window.clearTimeout(timer);void client.removeChannel(channel)};
   },[configured,groupId,refresh]);
   const loadSlots=useCallback((roomId:string)=>dependencies.rooms.slots(roomId),[dependencies]);
 

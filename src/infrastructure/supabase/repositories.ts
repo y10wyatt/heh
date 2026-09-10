@@ -19,7 +19,7 @@ export const mapEntitlement=(row:EntitlementRow):RoomActionEntitlement=>({id:row
 export const mapDailyResult=(row:DailyResultRow):DailyResult=>({id:row.id,challengeGroupId:row.challenge_group_id,localDate:row.local_date,scores:Object.fromEntries(Object.entries(row.scores).map(([key,value])=>[key,Number(value)])),appliedRules:row.applied_rules??[],tie:row.tie,createdAt:row.created_at});
 export const mapRoomItem=(row:RoomItemRow):RoomItem=>({id:row.id,name:row.name,itemType:row.item_type,rarity:row.rarity,effectType:row.effect_type,metadata:row.metadata??{}});
 export class SupabaseActionEventRepository implements ActionEventRepository{
- async list(groupId:string){const {data,error}=await db().from("personal_action_events").select("*").eq("group_id",groupId).order("occurred_at",{ascending:false});if(error)throw error;return data.map(mapActionEvent)}
+ async list(groupId:string){const {data,error}=await db().from("personal_action_events").select("id,user_id,group_id,source_app,category,action_type,title,value,unit,occurred_at,created_at,visibility,external_reference,schema_version,metadata").eq("group_id",groupId).order("occurred_at",{ascending:false}).limit(200);if(error)throw error;return data.map(mapActionEvent)}
  async append(e:ActionEvent){const {error}=await db().rpc("our_place_log_personal_action",{p_id:e.id,p_group_id:e.challengeGroupId,p_source_app:e.sourceApp,p_category:e.category??null,p_action_type:e.actionType,p_title:e.title,p_value:e.value??null,p_unit:e.unit??null,p_occurred_at:e.occurredAt,p_visibility:e.visibility,p_external_reference:e.externalReference??null,p_schema_version:e.schemaVersion,p_metadata:e.metadata} as never);if(error&&error.code!=="23505")throw error}
 }
 type PointRuleRow={id:string;challenge_group_id:string;version:number;action_type:string;category?:string;points:number;active:boolean};
@@ -80,12 +80,12 @@ export class SupabaseHouseholdRoomRepository implements RoomRepository{
 type HouseholdActionRow={id:string;group_id:string;actor_id:string;target_user_id:string;action_type:HouseholdActionRecord["actionType"];message?:string;payload:Record<string,unknown>;state:HouseholdActionRecord["state"];created_at:string};
 const mapHouseholdAction=(row:HouseholdActionRow):HouseholdActionRecord=>({id:row.id,groupId:row.group_id,actorId:row.actor_id,targetUserId:row.target_user_id,actionType:row.action_type,message:row.message,payload:row.payload??{},state:row.state,createdAt:row.created_at});
 export class SupabaseHouseholdActionRepository implements RoomActionRepository,HouseholdActionRepository{
- async listRecords(groupId:string){const {data,error}=await db().from("household_actions").select("id,group_id,actor_id,target_user_id,action_type,message,payload,state,created_at").eq("group_id",groupId).order("created_at",{ascending:false});if(error)throw error;return (data as HouseholdActionRow[]).map(mapHouseholdAction)}
+ async listRecords(groupId:string){const {data,error}=await db().from("household_actions").select("id,group_id,actor_id,target_user_id,action_type,message,payload,state,created_at").eq("group_id",groupId).order("created_at",{ascending:false}).limit(100);if(error)throw error;return (data as HouseholdActionRow[]).map(mapHouseholdAction)}
  async leave(input:LeaveHouseholdActionInput){const {data,error}=await db().rpc("our_place_leave_action",{p_id:input.id,p_group_id:input.groupId,p_target_user_id:input.targetUserId,p_action_type:input.actionType,p_message:input.message??null,p_payload:input.payload??{}} as never);if(error)throw error;return mapHouseholdAction(data as unknown as HouseholdActionRow)}
  async setState(id:string,state:Exclude<HouseholdActionRecord["state"],"placed">){const {data,error}=await db().rpc("our_place_set_action_state",{p_id:id,p_state:state} as never);if(error)throw error;return mapHouseholdAction(data as unknown as HouseholdActionRow)}
  async list(groupId:string){
   const [{data:actions,error:actionError},{data:rooms,error:roomError}]=await Promise.all([
-   db().from("household_actions").select("id,group_id,actor_id,target_user_id,action_type,message,payload,state,created_at").eq("group_id",groupId).order("created_at",{ascending:false}),
+    db().from("household_actions").select("id,group_id,actor_id,target_user_id,action_type,message,payload,state,created_at").eq("group_id",groupId).order("created_at",{ascending:false}).limit(100),
    db().from("household_rooms").select("id,owner_id").eq("group_id",groupId),
   ]);
   if(actionError)throw actionError;if(roomError)throw roomError;

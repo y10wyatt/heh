@@ -72,12 +72,12 @@ export function AppDataProvider({children}:PropsWithChildren){
   useEffect(()=>{void load()},[currentUserId,configured]);
   useEffect(()=>{
     if(!configured||!groupId||!supabase)return;
-    const client=supabase;
+    const client=supabase;let timer=0;const schedule=()=>{window.clearTimeout(timer);timer=window.setTimeout(()=>void load(),300)};
     const channel=client.channel(`our-place-sync:${groupId}`)
-      .on("postgres_changes",{event:"*",schema:"public",table:"household_actions",filter:`group_id=eq.${groupId}`},()=>void load())
-      .on("postgres_changes",{event:"*",schema:"public",table:"personal_action_events",filter:`group_id=eq.${groupId}`},()=>void load())
+      .on("postgres_changes",{event:"*",schema:"public",table:"household_actions",filter:`group_id=eq.${groupId}`},schedule)
+      .on("postgres_changes",{event:"*",schema:"public",table:"personal_action_events",filter:`group_id=eq.${groupId}`},schedule)
       .subscribe();
-    return()=>{void client.removeChannel(channel)};
+    return()=>{window.clearTimeout(timer);void client.removeChannel(channel)};
   },[configured,groupId]);
 
   const value=useMemo<AppData>(()=>({events,rules,householdActions,currentUserId,groupId,household,loading,error,refresh:load,
